@@ -6,6 +6,10 @@ All notable changes to this extension. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-25
+
+First release (proof of concept).
+
 ### Added
 - Verification of C2PA Content Credentials when JPEG/PNG files are uploaded or replaced
   (FAL events).
@@ -23,20 +27,7 @@ All notable changes to this extension. The format follows
   Content Credentials. Shown in the frontend as "according to the editors".
 - Unit and functional tests (typo3/testing-framework, PHPUnit 12, SQLite): `composer test`,
   run in GitHub Actions with PHP 8.3 and 8.4.
+- Security review before the release; see SECURITY.md.
 
-### Changed
-- README, SECURITY.md, CHANGELOG, fixture notes, code comments and the composer
-  description are in English.
-
-### Fixed
-- `CredentialReader`, `BadgeViewHelper` and the upload listener called `getUid()` on
-  `FileInterface`, which has no such method. They now use `getProperty('uid')` or check for
-  `File`; the listener ignores files without metadata.
-- `CredentialReader` uses the actual API of `provemark/c2pa-verifier` (it previously used
-  classes of the sister package `provemark/content-credentials`).
-- `c2pa:scan`: `ConnectionPool::getQueryBuilderForTable()` instead of a method that does
-  not exist.
-
-### Security
-- The C2PA fields could be overwritten through DataHandler despite `readOnly`. See
-  SECURITY.md.
+[Unreleased]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.1.0...HEAD
+[0.1.0]: https://github.com/dkd-dobberkau/c2pa-reader/releases/tag/0.1.0
