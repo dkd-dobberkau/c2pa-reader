@@ -12,6 +12,8 @@ Alle wichtigen Änderungen an dieser Extension. Format nach
 - Tab „Content Credentials (C2PA)" in den Dateimetadaten: Status, KI-Markierung,
   Software-Agents, Zeitpunkt der Prüfung.
 - DataHandler-Hook, der die C2PA-Felder gegen Schreiben durch Benutzer sperrt.
+- Testbilder aus `contentauth/c2pa-rs` in `Tests/Fixtures/c2pa-rs/` und
+  `Build/Scripts/import-fixtures.php` zum Einspielen in eine lokale Instanz.
 
 ### Fixed
 - `CredentialReader` nutzt die echte API von `provemark/c2pa-verifier`

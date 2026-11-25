@@ -130,8 +130,18 @@ Details zum letzten Review: [SECURITY.md](SECURITY.md).
 
 ## Testen
 
-Es gibt noch keine automatisierten Tests. Für einen Handtest eignen sich die Testbilder
-aus [`contentauth/c2pa-rs`](https://github.com/contentauth/c2pa-rs/tree/main/sdk/tests/fixtures):
+Es gibt noch keine automatisierten Tests. Für einen Handtest liegen Testbilder aus
+[`contentauth/c2pa-rs`](https://github.com/contentauth/c2pa-rs/tree/main/sdk/tests/fixtures)
+(MIT) in `Tests/Fixtures/c2pa-rs/`. Dieses Skript spielt sie über die FAL-API nach
+`fileadmin/c2pa-test/` ein. Dabei laufen dieselben Events wie bei einem Upload:
+
+```bash
+ddev exec php /var/www/packages/c2pa_reader/Build/Scripts/import-fixtures.php
+```
+
+Das Skript nimmt als optionales Argument den Pfad zu `vendor/autoload.php`; der Standard
+ist `/var/www/html/vendor/autoload.php`. Bei erneutem Aufruf werden die Dateien ersetzt
+und neu geprüft. Erwartete Ergebnisse:
 
 | Datei | erwarteter Status | KI |
 |---|---|---|
