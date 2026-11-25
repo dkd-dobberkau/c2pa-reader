@@ -2,7 +2,9 @@
 
 ## Reporting a vulnerability
 
-Please do not open a public issue. Contact dkd Internet Service GmbH directly.
+Please do not open a public issue. Report it privately through GitHub instead:
+**Security → Report a vulnerability** in this repository
+(<https://github.com/dkd-dobberkau/c2pa-reader/security/advisories/new>).
 
 ## Review of 2026-11-25
 
