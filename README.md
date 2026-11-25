@@ -199,6 +199,9 @@ composer test:unit
 composer test:functional
 ```
 
+GitHub Actions (`.github/workflows/tests.yml`) führt die Tests bei jedem Push auf `main` und
+bei Pull Requests mit PHP 8.3 und 8.4 aus.
+
 | Test | prüft |
 |---|---|
 | `Tests/Unit/Service/CredentialReaderTest.php` | alle Testbilder gegen den echten Verifier; manipuliertes KI-Bild → `invalid` und `ai=0`; nicht unterstützter Typ, Größenlimit, Lesefehler |
@@ -239,7 +242,6 @@ Zum Gegencheck die CLI des Verifiers: `vendor/bin/c2pa-verify <datei>`.
 
 1. Trust-List-Prüfung (`TrustSettings`) und Status `trusted` als eigener Wert.
 2. Weitere Formate (WebP, MP4) und ein Warnhinweis im Backend bei `invalid`.
-3. CI (GitHub Actions), die `composer test` bei jedem Push ausführt.
 
 ## Lizenz
 

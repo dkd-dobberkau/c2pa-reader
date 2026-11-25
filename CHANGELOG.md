@@ -21,7 +21,7 @@ Alle wichtigen Änderungen an dieser Extension. Format nach
 - Feld `tx_c2pareader_ai_manual`: KI-Kennzeichnung durch die Redaktion, z. B. für Bilder
   ohne Content Credentials. Im Frontend als „laut Redaktion" ausgewiesen.
 - Unit- und Functional-Tests (typo3/testing-framework, PHPUnit 12, SQLite):
-  `composer test`.
+  `composer test`, in GitHub Actions mit PHP 8.3 und 8.4.
 
 ### Fixed
 - `CredentialReader`, `BadgeViewHelper` und der Upload-Listener riefen `getUid()` auf
