@@ -221,6 +221,10 @@ as for an upload:
 ddev exec php /var/www/packages/c2pa_reader/Build/Scripts/import-fixtures.php
 ```
 
+`Tests/` and `Build/` are not part of the Composer dist package (see `.gitattributes`), so
+the script needs a source checkout, for example the path repository setup above, or
+`composer require dkd/c2pa-reader --prefer-source`.
+
 The script takes the path to `vendor/autoload.php` as an optional argument; the default is
 `/var/www/html/vendor/autoload.php`. Running it again replaces the files and checks them
 again. Expected results:

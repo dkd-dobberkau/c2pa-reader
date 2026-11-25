@@ -6,6 +6,13 @@ All notable changes to this extension. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-25
+
+### Changed
+- The Composer dist package no longer contains `Tests/`, `Build/` and the CI configuration
+  (about 100 KB instead of about 8.5 MB).
+- SECURITY.md: vulnerabilities are reported through GitHub private vulnerability reporting.
+
 ## [0.1.0] - 2026-11-25
 
 First release (proof of concept).
@@ -29,5 +36,6 @@ First release (proof of concept).
   run in GitHub Actions with PHP 8.3 and 8.4.
 - Security review before the release; see SECURITY.md.
 
-[Unreleased]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.1.0...HEAD
+[Unreleased]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.1.1...HEAD
+[0.1.1]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/dkd-dobberkau/c2pa-reader/releases/tag/0.1.0
