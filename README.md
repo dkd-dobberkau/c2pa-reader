@@ -1,29 +1,28 @@
-# c2pa_reader – C2PA Content Credentials in der TYPO3-Dateiliste
+# c2pa_reader – C2PA Content Credentials in the TYPO3 file list
 
-TYPO3-14-Extension (Proof of Concept). Beim Upload oder Ersetzen einer JPEG- oder
-PNG-Datei liest die Extension ein eventuell vorhandenes C2PA-Manifest und prüft es.
-Das Ergebnis steht im Tab „Content Credentials (C2PA)" der Dateimetadaten. Dort ist es
-nur lesbar.
+TYPO3 14 extension (proof of concept). When a JPEG or PNG file is uploaded or replaced,
+the extension reads and verifies its C2PA manifest, if there is one. The result is shown,
+read-only, in the "Content Credentials (C2PA)" tab of the file metadata.
 
-Die Prüfung macht [`provemark/c2pa-verifier`](https://github.com/provemark/c2pa-verifier).
-Das ist reines PHP: kein Binary, keine PHP-Extension, kein Netzwerkzugriff.
+Verification is done by [`provemark/c2pa-verifier`](https://github.com/provemark/c2pa-verifier).
+It is pure PHP: no binary, no PHP extension, no network access.
 
-## Voraussetzungen
+## Requirements
 
-- PHP 8.3 oder neuer
-- TYPO3 14.x (getestet mit 14.3)
-- `provemark/c2pa-verifier` ^0.11 (getestet mit 0.11.5)
+- PHP 8.3 or later
+- TYPO3 14.x (tested with 14.3)
+- `provemark/c2pa-verifier` ^0.11 (tested with 0.11.5)
 
 ## Installation
 
-Über Composer:
+With Composer:
 
 ```bash
 composer require dkd/c2pa-reader
 vendor/bin/typo3 extension:setup -e c2pa_reader
 ```
 
-Für die lokale Entwicklung als Path-Repository, zum Beispiel in einem DDEV-Projekt:
+For local development as a path repository, for example in a DDEV project:
 
 ```json
 "repositories": [
@@ -36,49 +35,49 @@ ddev composer require "dkd/c2pa-reader:@dev"
 ddev exec vendor/bin/typo3 extension:setup -e c2pa_reader
 ```
 
-Liegt die Extension außerhalb des Projekts, über `.ddev/docker-compose.*.yaml` in den
-Container einhängen (z. B. nach `/var/www/packages/c2pa_reader`).
+If the extension lives outside the project, mount it into the container with
+`.ddev/docker-compose.*.yaml` (for example to `/var/www/packages/c2pa_reader`).
 
-## Benutzung
+## Usage
 
-### Automatisch beim Upload
+### Automatically on upload
 
-Ein Event-Listener reagiert auf `AfterFileAddedEvent` und `AfterFileReplacedEvent`. Das
-gilt für Uploads in der Dateiliste, für Ersetzen und für jeden anderen Weg über die
-FAL-API (`ResourceStorage::addFile()`, `replaceFile()`).
+An event listener handles `AfterFileAddedEvent` and `AfterFileReplacedEvent`. This covers
+uploads in the file list, replacing a file, and every other path through the FAL API
+(`ResourceStorage::addFile()`, `replaceFile()`).
 
-### Bestand prüfen
+### Checking existing files
 
 ```bash
-vendor/bin/typo3 c2pa:scan          # nur Dateien, die noch nicht geprüft wurden
-vendor/bin/typo3 c2pa:scan --force  # alle JPEG/PNG erneut prüfen
+vendor/bin/typo3 c2pa:scan          # only files that have not been checked yet
+vendor/bin/typo3 c2pa:scan --force  # check all JPEG/PNG files again
 ```
 
-Der Befehl gibt am Ende eine Tabelle mit der Anzahl der Dateien pro Status aus. Dateien,
-die nicht gelesen werden können, werden mit Warnung übersprungen.
+The command ends with a table of file counts per status. Files that cannot be read are
+skipped with a warning.
 
-### Im Backend
+### In the backend
 
-Dateiliste → Datei bearbeiten (Metadaten) → Tab **Content Credentials (C2PA)**.
+File list → edit file (metadata) → tab **Content Credentials (C2PA)**.
 
-Dort gibt es auch den Schalter **„AI-generated (set by editors)"**. Den setzt die Redaktion
-bei KI-Bildern, die keine Content Credentials (mehr) haben, etwa weil ein Dienst die
-Metadaten entfernt hat.
+The tab also has the switch **"AI-generated (set by editors)"**. Editors set it for AI
+images that carry no Content Credentials, for example because a service stripped the
+metadata.
 
-### Im Frontend: KI-Hinweis
+### In the frontend: AI notice
 
-Ein Bild bekommt einen Hinweis, wenn **eine** der beiden Angaben zutrifft:
+An image gets a notice when **either** of these is true:
 
-1. das Manifest erklärt es als KI-generiert, bei gültiger Signatur (`tx_c2pareader_ai`):
-   „KI-generiert – laut Content Credentials (OpenAI Media Service API, ChatGPT gpt-image)";
-2. die Redaktion hat den Schalter gesetzt (`tx_c2pareader_ai_manual`):
-   „KI-generiert – laut Redaktion".
+1. the manifest declares it AI-generated and the signature is valid (`tx_c2pareader_ai`):
+   "AI-generated – according to Content Credentials (OpenAI Media Service API, ChatGPT gpt-image)";
+2. an editor has set the switch (`tx_c2pareader_ai_manual`):
+   "AI-generated – according to the editors".
 
-Die Angabe aus dem Manifest hat Vorrang, weil sie signiert ist. Texte gibt es auf Englisch
-und Deutsch (`Resources/Private/Language/locallang.xlf`, `de.locallang.xlf`).
+The manifest takes precedence because it is signed. Labels exist in English and German
+(`Resources/Private/Language/locallang.xlf`, `de.locallang.xlf`).
 
-**Variante A: automatisch an allen Bildern von fluid_styled_content.** Das Site Set
-`dkd/c2pa-reader-badge` in der Site-Konfiguration ergänzen:
+**Option A: automatically on all fluid_styled_content images.** Add the site set
+`dkd/c2pa-reader-badge` to the site configuration:
 
 ```yaml
 dependencies:
@@ -86,13 +85,13 @@ dependencies:
   - dkd/c2pa-reader-badge
 ```
 
-Das Set überschreibt das Partial `Media/Type/Image` (Pfad-Priorität 1700) und setzt den
-Hinweis in die `figcaption`, so gehört er semantisch zum Bild. Es bindet außerdem ein
-schlichtes Stylesheet ein (`Resources/Public/Css/badge.css`, Klassen `c2pa-badge*`).
-Überschreibt das Sitepackage dasselbe Partial mit höherer Priorität, dort
-`<c2pa:badge file="{file}" />` selbst einsetzen.
+The set overrides the partial `Media/Type/Image` (path priority 1700) and puts the notice
+into the `figcaption`, so it belongs to the image semantically. It also includes a plain
+stylesheet (`Resources/Public/Css/badge.css`, classes `c2pa-badge*`). If your site package
+overrides the same partial with a higher priority, add `<c2pa:badge file="{file}" />` there
+yourself.
 
-**Variante B: im eigenen Template.** Der ViewHelper ist global als `c2pa` registriert:
+**Option B: in your own template.** The ViewHelper is registered globally as `c2pa`:
 
 ```html
 <c2pa:badge file="{file}" />
@@ -100,149 +99,149 @@ schlichtes Stylesheet ein (`Resources/Public/Css/badge.css`, Klassen `c2pa-badge
 <c2pa:badge file="{file}" template="EXT:my_site/Resources/Private/Templates/C2paBadge.fluid.html" />
 ```
 
-`file` ist ein `File` oder eine `FileReference`. Ohne KI-Angabe gibt der ViewHelper nichts
-aus. Der Hinweis bekommt die id `c2pa-badge-<uid>`, die sich z. B. für `aria-describedby`
-am `<img>` nutzen lässt. Ein eigenes Template erhält `{disclosure}` (`source`:
-`credentials` oder `editor`, `agents`, `fromCredentials`) und `{id}`.
+`file` is a `File` or a `FileReference`. Without an AI flag the ViewHelper renders nothing.
+The notice gets the id `c2pa-badge-<uid>`, which you can use for `aria-describedby` on the
+`<img>`, for example. A custom template receives `{disclosure}` (`source`: `credentials` or
+`editor`, `agents`, `fromCredentials`) and `{id}`.
 
-Wer nur die Werte braucht: Die Metadaten stehen in jedem Template auch direkt zur Verfügung,
-z. B. `{file.properties.tx_c2pareader_ai}`.
+If you only need the values: the metadata is also available directly in every template,
+for example `{file.properties.tx_c2pareader_ai}`.
 
-Der Hinweis ersetzt keine rechtliche Prüfung, ob und wie KI-Inhalte gekennzeichnet werden
-müssen (z. B. Art. 50 AI Act).
+The notice does not replace a legal assessment of whether and how AI content must be
+labelled (for example under Art. 50 of the EU AI Act).
 
-## Gespeicherte Felder (`sys_file_metadata`)
+## Stored fields (`sys_file_metadata`)
 
-| Feld | Werte | Bedeutung |
+| Field | Values | Meaning |
 |---|---|---|
-| `tx_c2pareader_status` | `none`, `valid`, `invalid`, `unreadable` | Ergebnis der Prüfung (siehe unten) |
-| `tx_c2pareader_ai` | 0 / 1 | 1 = das Manifest erklärt die Datei als KI-generiert. Nur bei gültiger Signatur. |
-| `tx_c2pareader_agents` | Text, max. 255 Zeichen | erzeugende Software (`claim_generator_info`) und `softwareAgent` der Actions |
-| `tx_c2pareader_checked` | Unix-Zeitstempel | letzte Prüfung |
-| `tx_c2pareader_ai_manual` | 0 / 1 | 1 = die Redaktion kennzeichnet die Datei als KI-generiert. Als einziges Feld bearbeitbar. |
+| `tx_c2pareader_status` | `none`, `valid`, `invalid`, `unreadable` | result of the check (see below) |
+| `tx_c2pareader_ai` | 0 / 1 | 1 = the manifest declares the file AI-generated. Only set when the signature is valid. |
+| `tx_c2pareader_agents` | text, max. 255 characters | generating software (`claim_generator_info`) and the `softwareAgent` of the actions |
+| `tx_c2pareader_checked` | Unix timestamp | last check |
+| `tx_c2pareader_ai_manual` | 0 / 1 | 1 = an editor labels the file as AI-generated. The only editable field. |
 
 ### Status
 
-| Status | Bedeutung |
+| Status | Meaning |
 |---|---|
-| `none` | Die Datei enthält keine Content Credentials. |
-| `valid` | Signatur, Hashes und Manifest sind in sich stimmig. Der Aussteller ist **nicht** gegen eine Trust List geprüft. |
-| `invalid` | Etwas ist fehlgeschlagen: Signatur passt nicht, Datei nach dem Signieren verändert, Zertifikat abgelaufen … |
-| `unreadable` | Nicht geprüft: Format nicht unterstützt, Datei größer als 50 MB oder Lesefehler (steht im TYPO3-Log). |
+| `none` | The file has no Content Credentials. |
+| `valid` | Signature, hashes and manifest are consistent. The signer is **not** checked against a trust list. |
+| `invalid` | Something failed: signature mismatch, file changed after signing, certificate expired … |
+| `unreadable` | Not checked: unsupported format, file larger than 50 MB, or a read error (see the TYPO3 log). |
 
-### Wann gilt eine Datei als KI-generiert?
+### When is a file considered AI-generated?
 
-Eine Action im aktiven Manifest hat den IPTC-`digitalSourceType`
-`trainedAlgorithmicMedia` oder `compositeWithTrainedAlgorithmicMedia`. Das ist zum
-Beispiel bei Bildern aus ChatGPT oder Adobe Firefly der Fall. `algorithmicMedia`
-(rein rechnerisch erzeugt, ohne trainiertes Modell) zählt nicht.
+When an action in the active manifest has the IPTC `digitalSourceType`
+`trainedAlgorithmicMedia` or `compositeWithTrainedAlgorithmicMedia`. This is the case for
+images from ChatGPT or Adobe Firefly, for example. `algorithmicMedia` (computed, without a
+trained model) does not count.
 
-## Wichtige Grenzen
+## Limitations
 
-- **„valid" ist kein Vertrauensnachweis.** Jeder kann ein Bild mit einem eigenen,
-  selbst ausgestellten Zertifikat signieren und darin beliebige Angaben machen, auch
-  „mit Kamera aufgenommen". Erst eine Trust-List-Prüfung (Status `Trusted` im Verifier)
-  sagt, wer signiert hat.
-- **Kein Manifest heißt nicht Fälschung.** Viele Dienste entfernen Metadaten beim Upload.
-  Umgekehrt kann jeder ein vorhandenes Manifest entfernen. `none` sagt also nichts darüber
-  aus, ob eine Datei KI-generiert ist.
-- **Nur JPEG und PNG.** Der Verifier kann mehr (WebP, GIF, AVIF/HEIC, MP4, WAV, MP3 …).
-  Weitere MIME-Typen in `CredentialReader::SUPPORTED_MIME_TYPES` ergänzen.
-- **Synchron beim Upload.** Die Prüfung läuft im Upload-Request. Große Dateien machen den
-  Upload langsamer; die Obergrenze ist 50 MB (`CredentialReader::MAX_BYTES`).
-- **Änderungen außerhalb von TYPO3** (FTP, Deployment) lösen keine neue Prüfung aus. Dann
-  `c2pa:scan --force` ausführen.
+- **"valid" is not proof of trust.** Anyone can sign an image with their own self-issued
+  certificate and claim anything in it, including "captured with a camera". Only a trust
+  list check (status `Trusted` in the verifier) tells you who signed.
+- **No manifest does not mean fake.** Many services strip metadata on upload. Conversely,
+  anyone can remove an existing manifest. So `none` says nothing about whether a file is
+  AI-generated.
+- **JPEG and PNG only.** The verifier supports more (WebP, GIF, AVIF/HEIC, MP4, WAV, MP3 …).
+  Add further MIME types to `CredentialReader::SUPPORTED_MIME_TYPES`.
+- **Synchronous on upload.** The check runs in the upload request. Large files slow the
+  upload down; the limit is 50 MB (`CredentialReader::MAX_BYTES`).
+- **Changes outside TYPO3** (FTP, deployment) do not trigger a new check. Run
+  `c2pa:scan --force` in that case.
 
-## Sicherheit
+## Security
 
-- Die vier Prüf-Felder schreibt nur die Extension selbst (über `MetaDataRepository`). Ein
-  DataHandler-Hook (`Classes/Hooks/ProtectCredentialFields.php`) entfernt sie aus jedem
-  eingehenden Datensatz. So kann kein Redakteur per Formular, Import oder Workspace den
-  Status fälschen. `readOnly` im TCA allein reicht dafür nicht, denn es wirkt nur in der
-  Anzeige. Das manuelle Feld `tx_c2pareader_ai_manual` ist davon ausgenommen; im
-  Frontend steht dann „laut Redaktion", nicht „laut Content Credentials".
-- Alle Werte aus dem Manifest (Agents, Texte) sind **Angaben aus der Datei** und damit
-  nicht vertrauenswürdig. Backend und Badge-Template escapen sie. Ein eigenes Badge-Template
-  muss das ebenso tun: kein `f:format.raw` auf `{disclosure.agents}`. (Das Partial des Site
-  Sets nutzt `f:format.raw` nur für die fertige, bereits escapte Ausgabe des ViewHelpers.)
-- Der Verifier lädt nichts nach. Ein per URL deklariertes Remote-Manifest wird nicht
-  abgerufen, OCSP-Abfragen sind aus.
+- Only the extension itself writes the four check fields (through `MetaDataRepository`). A
+  DataHandler hook (`Classes/Hooks/ProtectCredentialFields.php`) removes them from every
+  incoming record, so no editor can forge the status through a form, an import or a
+  workspace. `readOnly` in TCA is not enough on its own, because it only affects the
+  display. The manual field `tx_c2pareader_ai_manual` is exempt; the frontend then says
+  "according to the editors", not "according to Content Credentials".
+- All values from the manifest (agents, texts) are **claims made by the file** and
+  therefore untrusted. The backend and the badge template escape them. A custom badge
+  template must do the same: no `f:format.raw` on `{disclosure.agents}`. (The site set's
+  partial uses `f:format.raw` only for the ViewHelper's finished, already escaped output.)
+- The verifier fetches nothing. A remote manifest declared by URL is not retrieved, and
+  OCSP requests are off.
 
-Details zum letzten Review: [SECURITY.md](SECURITY.md).
+Details of the last review: [SECURITY.md](SECURITY.md) (in German).
 
-## Aufbau
+## Structure
 
-| Datei | Aufgabe |
+| File | Purpose |
 |---|---|
-| `Classes/Service/CredentialReader.php` | ruft den Verifier auf und übersetzt den Report in die vier Felder |
-| `Classes/EventListener/ReadCredentialsOnUpload.php` | prüft nach Upload und Ersetzen |
-| `Classes/Command/ScanCommand.php` | `c2pa:scan` für den Bestand |
-| `Classes/Hooks/ProtectCredentialFields.php` | sperrt die Prüf-Felder für DataHandler |
-| `Classes/Service/AiDisclosureResolver.php` | entscheidet, ob und mit welcher Quelle ein KI-Hinweis erscheint |
-| `Classes/ViewHelpers/BadgeViewHelper.php` | `<c2pa:badge>`, rendert `Resources/Private/Templates/Badge.fluid.html` |
-| `Configuration/Sets/Badge/` | Site Set `dkd/c2pa-reader-badge`: Hinweis an fluid_styled_content-Bildern |
-| `Configuration/TCA/Overrides/sys_file_metadata.php` | Felder und Tab im Backend |
-| `ext_tables.sql` | Datenbankfelder |
+| `Classes/Service/CredentialReader.php` | calls the verifier and maps the report to the four fields |
+| `Classes/EventListener/ReadCredentialsOnUpload.php` | checks after upload and replace |
+| `Classes/Command/ScanCommand.php` | `c2pa:scan` for existing files |
+| `Classes/Hooks/ProtectCredentialFields.php` | locks the check fields against DataHandler |
+| `Classes/Service/AiDisclosureResolver.php` | decides whether an AI notice is shown, and with which source |
+| `Classes/ViewHelpers/BadgeViewHelper.php` | `<c2pa:badge>`, renders `Resources/Private/Templates/Badge.fluid.html` |
+| `Configuration/Sets/Badge/` | site set `dkd/c2pa-reader-badge`: notice on fluid_styled_content images |
+| `Configuration/TCA/Overrides/sys_file_metadata.php` | fields and tab in the backend |
+| `ext_tables.sql` | database fields |
 
-## Testen
+## Testing
 
-### Automatisierte Tests
+### Automated tests
 
-Unit- und Functional-Tests mit `typo3/testing-framework` (PHPUnit 12). Die Functional-Tests
-nutzen SQLite und brauchen keinen Datenbankserver. Voraussetzung: PHP 8.3+ mit `pdo_sqlite`,
-`intl` und `gd`.
+Unit and functional tests with `typo3/testing-framework` (PHPUnit 12). The functional
+tests use SQLite and need no database server. Requirements: PHP 8.3+ with `pdo_sqlite`,
+`intl` and `gd`.
 
 ```bash
-composer install          # installiert TYPO3 14 und die Testwerkzeuge nach .Build/
-composer test             # alle Tests
+composer install          # installs TYPO3 14 and the test tools into .Build/
+composer test             # all tests
 composer test:unit
 composer test:functional
 ```
 
-GitHub Actions (`.github/workflows/tests.yml`) führt die Tests bei jedem Push auf `main` und
-bei Pull Requests mit PHP 8.3 und 8.4 aus.
+GitHub Actions (`.github/workflows/tests.yml`) runs the tests on every push to `main` and
+on pull requests, with PHP 8.3 and 8.4.
 
-| Test | prüft |
+| Test | Covers |
 |---|---|
-| `Tests/Unit/Service/CredentialReaderTest.php` | alle Testbilder gegen den echten Verifier; manipuliertes KI-Bild → `invalid` und `ai=0`; nicht unterstützter Typ, Größenlimit, Lesefehler |
-| `Tests/Unit/Service/AiDisclosureResolverTest.php` | Quelle des KI-Hinweises, Vorrang der Content Credentials |
-| `Tests/Unit/Hooks/ProtectCredentialFieldsTest.php` | welche Felder der Hook entfernt |
-| `Tests/Functional/Hooks/ProtectCredentialFieldsTest.php` | echter DataHandler als Admin und als Redakteur: Prüf-Felder bleiben, `title` und manuelles KI-Feld ändern sich |
-| `Tests/Functional/EventListener/ReadCredentialsOnUploadTest.php` | Hinzufügen und Ersetzen über die FAL-API bis in `sys_file_metadata` |
-| `Tests/Functional/ViewHelpers/BadgeViewHelperTest.php` | Ausgabe von `<c2pa:badge>`, id, Texte, Escaping von Manifest-Angaben |
+| `Tests/Unit/Service/CredentialReaderTest.php` | all test images against the real verifier; tampered AI image → `invalid` and `ai=0`; unsupported type, size limit, read error |
+| `Tests/Unit/Service/AiDisclosureResolverTest.php` | source of the AI notice, precedence of Content Credentials |
+| `Tests/Unit/Hooks/ProtectCredentialFieldsTest.php` | which fields the hook removes |
+| `Tests/Functional/Hooks/ProtectCredentialFieldsTest.php` | real DataHandler as admin and as editor: check fields stay, `title` and the manual AI field change |
+| `Tests/Functional/EventListener/ReadCredentialsOnUploadTest.php` | adding and replacing through the FAL API, through to `sys_file_metadata` |
+| `Tests/Functional/ViewHelpers/BadgeViewHelperTest.php` | output of `<c2pa:badge>`, id, labels, escaping of manifest values |
 
-### Handtest in einer Instanz
+### Manual test in an instance
 
-Testbilder aus
+Test images from
 [`contentauth/c2pa-rs`](https://github.com/contentauth/c2pa-rs/tree/main/sdk/tests/fixtures)
-(MIT) liegen in `Tests/Fixtures/c2pa-rs/`, ein ChatGPT-Bild in `Tests/Fixtures/ai/`. Dieses Skript
-spielt alle über die FAL-API nach `fileadmin/c2pa-test/` ein. Dabei laufen dieselben Events
-wie bei einem Upload:
+(MIT) are in `Tests/Fixtures/c2pa-rs/`, a ChatGPT image is in `Tests/Fixtures/ai/`. This
+script adds them all to `fileadmin/c2pa-test/` through the FAL API, so the same events run
+as for an upload:
 
 ```bash
 ddev exec php /var/www/packages/c2pa_reader/Build/Scripts/import-fixtures.php
 ```
 
-Das Skript nimmt als optionales Argument den Pfad zu `vendor/autoload.php`; der Standard
-ist `/var/www/html/vendor/autoload.php`. Bei erneutem Aufruf werden die Dateien ersetzt
-und neu geprüft. Erwartete Ergebnisse:
+The script takes the path to `vendor/autoload.php` as an optional argument; the default is
+`/var/www/html/vendor/autoload.php`. Running it again replaces the files and checks them
+again. Expected results:
 
-| Datei | erwarteter Status | KI |
+| File | Expected status | AI |
 |---|---|---|
 | `C.jpg` | valid | 0 (`algorithmicMedia`) |
 | `CA.jpg` | valid | 0 |
 | `E-sig-CA.jpg` | invalid (`claimSignature.mismatch`) | 0 |
-| `exp-test1.png` | invalid (Zertifikat abgelaufen) | 0 |
+| `exp-test1.png` | invalid (certificate expired) | 0 |
+| `libpng-test.png` | none | 0 |
 | `no_manifest.jpg` | none | 0 |
 | `chatgpt-gpt-image.png` | valid | 1 (`trainedAlgorithmicMedia`) |
 
-Zum Gegencheck die CLI des Verifiers: `vendor/bin/c2pa-verify <datei>`.
+To cross-check, use the verifier's CLI: `vendor/bin/c2pa-verify <file>`.
 
-## Nächste Schritte
+## Next steps
 
-1. Trust-List-Prüfung (`TrustSettings`) und Status `trusted` als eigener Wert.
-2. Weitere Formate (WebP, MP4) und ein Warnhinweis im Backend bei `invalid`.
+1. Trust list check (`TrustSettings`) and `trusted` as a separate status.
+2. More formats (WebP, MP4) and a warning in the backend for `invalid`.
 
-## Lizenz
+## License
 
-GPL-2.0-or-later, siehe [LICENSE](LICENSE).
+GPL-2.0-or-later, see [LICENSE](LICENSE).
