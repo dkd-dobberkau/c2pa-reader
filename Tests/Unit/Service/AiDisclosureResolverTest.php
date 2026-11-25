@@ -49,6 +49,18 @@ final class AiDisclosureResolverTest extends UnitTestCase
         self::assertSame(AiDisclosure::SOURCE_CREDENTIALS, $disclosure->source);
         self::assertTrue($disclosure->isFromCredentials());
         self::assertSame('OpenAI Media Service API, ChatGPT gpt-image', $disclosure->agents);
+        self::assertFalse($disclosure->trustedSigner);
+    }
+
+    #[Test]
+    public function trustedStatusMarksTheSignerAsTrusted(): void
+    {
+        $disclosure = (new AiDisclosureResolver())->resolve($this->file([
+            'tx_c2pareader_ai' => 1,
+            'tx_c2pareader_status' => 'trusted',
+        ]));
+
+        self::assertTrue($disclosure?->trustedSigner);
     }
 
     #[Test]

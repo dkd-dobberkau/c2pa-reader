@@ -8,6 +8,9 @@
             <f:if condition="{disclosure.agents}">
                 <span class="c2pa-badge__agents">({disclosure.agents})</span>
             </f:if>
+            <f:if condition="{disclosure.trustedSigner}">
+                <span class="c2pa-badge__trust"><f:translate key="{lll}badge.trustedSigner" /></span>
+            </f:if>
         </f:then>
         <f:else>
             <span class="c2pa-badge__source"><f:translate key="{lll}badge.source.editor" /></span>

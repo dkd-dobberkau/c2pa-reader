@@ -17,6 +17,8 @@ final readonly class AiDisclosure
     public function __construct(
         public string $source,
         public string $agents = '',
+        /** The signer chains to an anchor of the trust lists (status "trusted"). */
+        public bool $trustedSigner = false,
     ) {}
 
     public function isFromCredentials(): bool

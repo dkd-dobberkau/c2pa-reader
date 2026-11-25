@@ -4,6 +4,7 @@
         <body>
             <trans-unit id="badge.ai"><source>AI-generated</source></trans-unit>
             <trans-unit id="badge.source.credentials"><source>according to Content Credentials</source></trans-unit>
+            <trans-unit id="badge.trustedSigner"><source>signer on the C2PA trust list</source></trans-unit>
             <trans-unit id="badge.source.editor"><source>according to the editors</source></trans-unit>
         </body>
     </file>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Dkd\C2paReader\Tests\Functional\EventListener;
 
 use Dkd\C2paReader\Service\CredentialReader;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Resource\Enum\DuplicationBehavior;
 use TYPO3\CMS\Core\Resource\File;
@@ -67,6 +68,26 @@ final class ReadCredentialsOnUploadTest extends FunctionalTestCase
 
         self::assertSame(CredentialReader::STATUS_NONE, $metadata['tx_c2pareader_status']);
         self::assertSame(0, (int)$metadata['tx_c2pareader_ai']);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function formatProvider(): iterable
+    {
+        foreach (['webp', 'gif', 'avif', 'heic', 'mp4', 'mov', 'wav', 'mp3', 'm4a'] as $extension) {
+            yield $extension => ['formats/ai.' . $extension];
+        }
+    }
+
+    /** TYPO3 detects the MIME type itself; every format must reach the reader. */
+    #[Test]
+    #[DataProvider('formatProvider')]
+    public function addingASignedFileOfAnyFormatStoresValidStatusAndAiFlag(string $fixture): void
+    {
+        $file = $this->add($fixture, basename($fixture));
+        $metadata = $this->metadata($file);
+
+        self::assertSame(CredentialReader::STATUS_VALID, $metadata['tx_c2pareader_status'], $file->getMimeType());
+        self::assertSame(1, (int)$metadata['tx_c2pareader_ai']);
     }
 
     #[Test]

@@ -17,6 +17,7 @@ ExtensionManagementUtility::addTCAcolumns('sys_file_metadata', [
             'readOnly' => true,
             'items' => [
                 ['label' => $lll . 'status.none', 'value' => 'none'],
+                ['label' => $lll . 'status.trusted', 'value' => 'trusted'],
                 ['label' => $lll . 'status.valid', 'value' => 'valid'],
                 ['label' => $lll . 'status.invalid', 'value' => 'invalid'],
                 ['label' => $lll . 'status.unreadable', 'value' => 'unreadable'],

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Dkd\C2paReader\Tests\Unit\Service;
 
+use Dkd\C2paReader\Configuration\ExtensionSettings;
 use Dkd\C2paReader\Service\CredentialReader;
+use Dkd\C2paReader\Trust\TrustSettingsProvider;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Log\LoggerInterface;
@@ -13,11 +15,24 @@ use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 /**
- * Runs against the real test images in Tests/Fixtures and the real verifier.
+ * Runs against the real test files in Tests/Fixtures and the real verifier.
  */
 final class CredentialReaderTest extends UnitTestCase
 {
     private const FIXTURES = __DIR__ . '/../../Fixtures/';
+    private const AGENTS_FORMATS = 'c2pa_reader test fixtures 1, c2pa_reader fixture generator';
+
+    /**
+     * A reader without trust lists (an empty trust directory), or with the snapshot in
+     * Tests/Fixtures/trust-list.
+     */
+    private function reader(bool $withTrustLists = false, int $maxFileSizeMb = 50, ?LoggerInterface $logger = null): CredentialReader
+    {
+        $directory = $withTrustLists ? self::FIXTURES . 'trust-list' : sys_get_temp_dir() . '/c2pa-reader-no-trust-' . getmypid();
+        $settings = new ExtensionSettings($directory, $maxFileSizeMb);
+
+        return new CredentialReader($logger ?? new NullLogger(), $settings, new TrustSettingsProvider($settings, new NullLogger()));
+    }
 
     private function file(string $path, string $mimeType, ?int $size = null): FileInterface
     {
@@ -48,7 +63,7 @@ final class CredentialReaderTest extends UnitTestCase
     public function readReturnsExpectedFieldsForFixture(string $fixture, string $mimeType, string $status, int $ai, string $agents): void
     {
         $before = time();
-        $result = (new CredentialReader(new NullLogger()))->read($this->file(self::FIXTURES . $fixture, $mimeType));
+        $result = $this->reader()->read($this->file(self::FIXTURES . $fixture, $mimeType));
 
         self::assertSame($status, $result['tx_c2pareader_status']);
         self::assertSame($ai, $result['tx_c2pareader_ai']);
@@ -56,10 +71,82 @@ final class CredentialReaderTest extends UnitTestCase
         self::assertGreaterThanOrEqual($before, $result['tx_c2pareader_checked']);
     }
 
+    /**
+     * Signed with the c2pa-rs test certificate (valid until 2030-08-26); see
+     * Build/Scripts/make-format-fixtures.sh.
+     *
+     * @return iterable<string, array{string, string}>
+     */
+    public static function formatProvider(): iterable
+    {
+        yield 'WebP' => ['ai.webp', 'image/webp'];
+        yield 'GIF' => ['ai.gif', 'image/gif'];
+        yield 'AVIF' => ['ai.avif', 'image/avif'];
+        yield 'HEIC' => ['ai.heic', 'image/heic'];
+        yield 'MP4' => ['ai.mp4', 'video/mp4'];
+        yield 'MOV' => ['ai.mov', 'video/quicktime'];
+        yield 'WAV' => ['ai.wav', 'audio/x-wav'];
+        yield 'MP3' => ['ai.mp3', 'audio/mpeg'];
+        yield 'M4A' => ['ai.m4a', 'audio/x-m4a'];
+    }
+
+    #[Test]
+    #[DataProvider('formatProvider')]
+    public function signedAiFileIsValidAndFlaggedInEveryFormat(string $fixture, string $mimeType): void
+    {
+        $file = $this->file(self::FIXTURES . 'formats/' . $fixture, $mimeType);
+        $reader = $this->reader();
+
+        self::assertTrue($reader->supports($file));
+        $result = $reader->read($file);
+        self::assertSame(CredentialReader::STATUS_VALID, $result['tx_c2pareader_status']);
+        self::assertSame(1, $result['tx_c2pareader_ai']);
+        self::assertSame(self::AGENTS_FORMATS, $result['tx_c2pareader_agents']);
+    }
+
+    #[Test]
+    #[DataProvider('formatProvider')]
+    public function changedByteMakesTheFileInvalidInEveryFormat(string $fixture, string $mimeType): void
+    {
+        // At a quarter of the file: in the signed content or the signed manifest for every format here.
+        $bytes = (string)file_get_contents(self::FIXTURES . 'formats/' . $fixture);
+        $offset = intdiv(strlen($bytes), 4);
+        $bytes[$offset] = chr(ord($bytes[$offset]) ^ 0xFF);
+        $tampered = tempnam(sys_get_temp_dir(), 'c2pa-test');
+        file_put_contents($tampered, $bytes);
+
+        try {
+            $result = $this->reader()->read($this->file($tampered, $mimeType));
+        } finally {
+            unlink($tampered);
+        }
+
+        self::assertSame(CredentialReader::STATUS_INVALID, $result['tx_c2pareader_status']);
+        self::assertSame(0, $result['tx_c2pareader_ai']);
+    }
+
+    #[Test]
+    public function signerOnTheTrustListGivesTrusted(): void
+    {
+        $result = $this->reader(withTrustLists: true)->read($this->file(self::FIXTURES . 'ai/chatgpt-gpt-image.png', 'image/png'));
+
+        self::assertSame(CredentialReader::STATUS_TRUSTED, $result['tx_c2pareader_status']);
+        self::assertSame(1, $result['tx_c2pareader_ai']);
+    }
+
+    #[Test]
+    public function signerNotOnTheTrustListStaysValid(): void
+    {
+        // The c2pa-rs test certificate is on no trust list.
+        $result = $this->reader(withTrustLists: true)->read($this->file(self::FIXTURES . 'formats/ai.webp', 'image/webp'));
+
+        self::assertSame(CredentialReader::STATUS_VALID, $result['tx_c2pareader_status']);
+    }
+
     #[Test]
     public function resultContainsExactlyTheProtectedFields(): void
     {
-        $result = (new CredentialReader(new NullLogger()))->read($this->file(self::FIXTURES . 'c2pa-rs/C.jpg', 'image/jpeg'));
+        $result = $this->reader()->read($this->file(self::FIXTURES . 'c2pa-rs/C.jpg', 'image/jpeg'));
 
         self::assertSame(CredentialReader::FIELDS, array_keys($result));
     }
@@ -67,21 +154,21 @@ final class CredentialReaderTest extends UnitTestCase
     #[Test]
     public function unsupportedMimeTypeIsNotSupportedAndUnreadable(): void
     {
-        $file = $this->file(self::FIXTURES . 'c2pa-rs/C.jpg', 'image/webp');
-        $reader = new CredentialReader(new NullLogger());
+        $file = $this->file(self::FIXTURES . 'c2pa-rs/C.jpg', 'application/pdf');
+        $reader = $this->reader();
 
         self::assertFalse($reader->supports($file));
         self::assertSame(CredentialReader::STATUS_UNREADABLE, $reader->read($file)['tx_c2pareader_status']);
     }
 
     #[Test]
-    public function fileAboveSizeLimitIsNotRead(): void
+    public function fileAboveTheConfiguredSizeLimitIsNotRead(): void
     {
         $file = $this->createMock(FileInterface::class);
-        $file->method('getMimeType')->willReturn('image/png');
-        $file->method('getSize')->willReturn(50 * 1024 * 1024 + 1);
+        $file->method('getMimeType')->willReturn('video/mp4');
+        $file->method('getSize')->willReturn(2 * 1024 * 1024 + 1);
         $file->expects(self::never())->method('getForLocalProcessing');
-        $reader = new CredentialReader(new NullLogger());
+        $reader = $this->reader(maxFileSizeMb: 2);
 
         self::assertFalse($reader->supports($file));
         self::assertSame(CredentialReader::STATUS_UNREADABLE, $reader->read($file)['tx_c2pareader_status']);
@@ -98,7 +185,7 @@ final class CredentialReaderTest extends UnitTestCase
         file_put_contents($tampered, $bytes);
 
         try {
-            $result = (new CredentialReader(new NullLogger()))->read($this->file($tampered, 'image/png'));
+            $result = $this->reader()->read($this->file($tampered, 'image/png'));
         } finally {
             unlink($tampered);
         }
@@ -119,7 +206,7 @@ final class CredentialReaderTest extends UnitTestCase
         $missing->method('getProperty')->willReturn(42);
         $missing->method('getForLocalProcessing')->willThrowException(new \RuntimeException('storage offline'));
 
-        $result = (new CredentialReader($logger))->read($missing);
+        $result = $this->reader(logger: $logger)->read($missing);
 
         self::assertSame(CredentialReader::STATUS_UNREADABLE, $result['tx_c2pareader_status']);
     }

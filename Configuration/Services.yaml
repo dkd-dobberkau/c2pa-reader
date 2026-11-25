@@ -12,3 +12,7 @@ services:
     resource: '../Classes/ViewHelpers/*'
     public: true
     shared: false
+
+  # Settings from ext_conf_template.txt, with defaults when the extension is not configured yet.
+  Dkd\C2paReader\Configuration\ExtensionSettings:
+    factory: ['Dkd\C2paReader\Configuration\ExtensionSettings', 'fromExtensionConfiguration']

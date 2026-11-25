@@ -1,0 +1,18 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
+<f:comment>
+    Copy of EXT:fluid_styled_content/Resources/Private/Partials/Media/Type/Video.fluid.html (TYPO3 14.3).
+    Added: AI notice (c2pa:badge) in the figcaption, so it belongs to the video semantically.
+</f:comment>
+<f:variable name="c2paBadge"><c2pa:badge file="{file}" /></f:variable>
+<figure class="video">
+    <div class="video-embed">
+        <f:render partial="Media/Rendering/Video" arguments="{file: file, dimensions: dimensions, settings: settings}" />
+    </div>
+    <f:if condition="{file.description} || {c2paBadge}">
+        <figcaption class="video-caption">
+            <f:if condition="{file.description}">{file.description -> f:format.nl2br()}</f:if>
+            <f:format.raw>{c2paBadge}</f:format.raw>
+        </figcaption>
+    </f:if>
+</figure>
+</html>

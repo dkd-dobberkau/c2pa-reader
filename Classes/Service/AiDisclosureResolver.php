@@ -25,6 +25,7 @@ final class AiDisclosureResolver
             return new AiDisclosure(
                 AiDisclosure::SOURCE_CREDENTIALS,
                 (string)($this->property($file, 'tx_c2pareader_agents') ?? ''),
+                $this->property($file, 'tx_c2pareader_status') === CredentialReader::STATUS_TRUSTED,
             );
         }
         if ($this->flag($file, self::FIELD_MANUAL)) {

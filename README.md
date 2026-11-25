@@ -1,11 +1,14 @@
 # c2pa_reader – C2PA Content Credentials in the TYPO3 file list
 
-TYPO3 14 extension (proof of concept). When a JPEG or PNG file is uploaded or replaced,
-the extension reads and verifies its C2PA manifest, if there is one. The result is shown,
-read-only, in the "Content Credentials (C2PA)" tab of the file metadata.
+TYPO3 14 extension (proof of concept). When an image, video or audio file is uploaded or
+replaced, the extension reads and verifies its C2PA manifest, if there is one. The result is
+shown, read-only, in the "Content Credentials (C2PA)" tab of the file metadata, and an AI
+notice can be shown in the frontend.
+
+Supported formats: JPEG, PNG, WebP, GIF, AVIF, HEIC/HEIF, MP4, MOV, WAV, MP3 and M4A.
 
 Verification is done by [`provemark/c2pa-verifier`](https://github.com/provemark/c2pa-verifier).
-It is pure PHP: no binary, no PHP extension, no network access.
+It is pure PHP: no binary, no PHP extension, no network access during the check.
 
 ## Requirements
 
@@ -50,11 +53,51 @@ uploads in the file list, replacing a file, and every other path through the FAL
 
 ```bash
 vendor/bin/typo3 c2pa:scan          # only files that have not been checked yet
-vendor/bin/typo3 c2pa:scan --force  # check all JPEG/PNG files again
+vendor/bin/typo3 c2pa:scan --force  # check all supported files again
 ```
 
 The command ends with a table of file counts per status. Files that cannot be read are
 skipped with a warning.
+
+### Trust lists: who signed?
+
+Without trust lists, the best status is `valid`: the file is intact, but anyone could have
+signed it. With the trust lists of the C2PA conformance programme, files whose signer chains
+to one of its anchors get the status `trusted` (for example images from ChatGPT, Gemini or
+Google Pixel phones).
+
+```bash
+vendor/bin/typo3 c2pa:trust:update                  # signer list + timestamp authority list
+vendor/bin/typo3 c2pa:trust:update --with-digicert  # also accept DigiCert timestamps
+vendor/bin/typo3 c2pa:scan --force                  # check existing files against the lists
+```
+
+- The command downloads `C2PA-TRUST-LIST.json` and `C2PA-TSA-TRUST-LIST.pem` from
+  [c2pa-org/conformance-public](https://github.com/c2pa-org/conformance-public/tree/main/trust-list)
+  (CC BY 4.0) into the trust directory, `var/c2pa/` by default. `trust-lists.json` there
+  records the date, the URLs and the SHA-256 of each file.
+- The lists change. Run the command again from time to time, for example in a scheduler
+  task or a cron job, followed by `c2pa:scan --force`.
+- `--with-digicert` also anchors **DigiCert Trusted Root G4** for timestamps; Adobe Firefly
+  and Microsoft use it, but it is not on the C2PA list. Without it, such files are `invalid`
+  once their signing certificate has expired. The command checks the root's published
+  SHA-256 fingerprint. Whether you accept DigiCert's timestamps is your decision; see
+  [the verifier's notes](https://github.com/provemark/c2pa-verifier/blob/main/docs/trust-settings.md).
+- Only this command uses the network, and only when you run it. Uploads and `c2pa:scan`
+  never do.
+- Your own trust settings: put a `trust.settings.json` (the format `c2patool --settings`
+  reads) into the trust directory. It takes precedence over the downloaded lists.
+- A broken or unreadable trust file is logged and ignored; files are then checked without
+  trust, never rejected.
+
+### Extension settings
+
+Admin Tools → Settings → Extension Configuration → `c2pa_reader`:
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `trustDirectory` | `var/c2pa` | where the trust lists are stored, relative to the project root or absolute |
+| `maxFileSizeMb` | `50` | larger files are not checked; the check runs during the upload |
 
 ### In the backend
 
@@ -66,12 +109,14 @@ metadata.
 
 ### In the frontend: AI notice
 
-An image gets a notice when **either** of these is true:
+An image, video or audio file gets a notice when **either** of these is true:
 
 1. the manifest declares it AI-generated and the signature is valid (`tx_c2pareader_ai`):
    "AI-generated – according to Content Credentials (OpenAI Media Service API, ChatGPT gpt-image)";
 2. an editor has set the switch (`tx_c2pareader_ai_manual`):
    "AI-generated – according to the editors".
+
+When the status is `trusted`, the notice adds "signer on the C2PA trust list".
 
 The manifest takes precedence because it is signed. Labels exist in English and German
 (`Resources/Private/Language/locallang.xlf`, `de.locallang.xlf`).
@@ -85,8 +130,9 @@ dependencies:
   - dkd/c2pa-reader-badge
 ```
 
-The set overrides the partial `Media/Type/Image` (path priority 1700) and puts the notice
-into the `figcaption`, so it belongs to the image semantically. It also includes a plain
+The set overrides the partials `Media/Type/Image`, `Media/Type/Video` and `Media/Type/Audio`
+(path priority 1700) and puts the notice into the `figcaption`, so it belongs to the media
+semantically. It also includes a plain
 stylesheet (`Resources/Public/Css/badge.css`, classes `c2pa-badge*`). If your site package
 overrides the same partial with a higher priority, add `<c2pa:badge file="{file}" />` there
 yourself.
@@ -102,7 +148,7 @@ yourself.
 `file` is a `File` or a `FileReference`. Without an AI flag the ViewHelper renders nothing.
 The notice gets the id `c2pa-badge-<uid>`, which you can use for `aria-describedby` on the
 `<img>`, for example. A custom template receives `{disclosure}` (`source`: `credentials` or
-`editor`, `agents`, `fromCredentials`) and `{id}`.
+`editor`, `agents`, `fromCredentials`, `trustedSigner`) and `{id}`.
 
 If you only need the values: the metadata is also available directly in every template,
 for example `{file.properties.tx_c2pareader_ai}`.
@@ -114,7 +160,7 @@ labelled (for example under Art. 50 of the EU AI Act).
 
 | Field | Values | Meaning |
 |---|---|---|
-| `tx_c2pareader_status` | `none`, `valid`, `invalid`, `unreadable` | result of the check (see below) |
+| `tx_c2pareader_status` | `none`, `trusted`, `valid`, `invalid`, `unreadable` | result of the check (see below) |
 | `tx_c2pareader_ai` | 0 / 1 | 1 = the manifest declares the file AI-generated. Only set when the signature is valid. |
 | `tx_c2pareader_agents` | text, max. 255 characters | generating software (`claim_generator_info`) and the `softwareAgent` of the actions |
 | `tx_c2pareader_checked` | Unix timestamp | last check |
@@ -125,9 +171,10 @@ labelled (for example under Art. 50 of the EU AI Act).
 | Status | Meaning |
 |---|---|
 | `none` | The file has no Content Credentials. |
-| `valid` | Signature, hashes and manifest are consistent. The signer is **not** checked against a trust list. |
+| `trusted` | Signature, hashes and manifest are consistent, and the signer's certificate chains to an anchor of the trust lists. |
+| `valid` | Signature, hashes and manifest are consistent. The signer is unknown: not on the trust lists, or no trust lists installed. |
 | `invalid` | Something failed: signature mismatch, file changed after signing, certificate expired … |
-| `unreadable` | Not checked: unsupported format, file larger than 50 MB, or a read error (see the TYPO3 log). |
+| `unreadable` | Not checked: unsupported format, file larger than `maxFileSizeMb`, or a read error (see the TYPO3 log). |
 
 ### When is a file considered AI-generated?
 
@@ -138,16 +185,19 @@ trained model) does not count.
 
 ## Limitations
 
-- **"valid" is not proof of trust.** Anyone can sign an image with their own self-issued
-  certificate and claim anything in it, including "captured with a camera". Only a trust
-  list check (status `Trusted` in the verifier) tells you who signed.
+- **"valid" is not proof of trust.** Anyone can sign a file with their own self-issued
+  certificate and claim anything in it, including "captured with a camera". Only `trusted`
+  tells you that the signer is known to the C2PA conformance programme, and even then the
+  manifest's statements are the signer's claims.
 - **No manifest does not mean fake.** Many services strip metadata on upload. Conversely,
   anyone can remove an existing manifest. So `none` says nothing about whether a file is
   AI-generated.
-- **JPEG and PNG only.** The verifier supports more (WebP, GIF, AVIF/HEIC, MP4, WAV, MP3 …).
-  Add further MIME types to `CredentialReader::SUPPORTED_MIME_TYPES`.
-- **Synchronous on upload.** The check runs in the upload request. Large files slow the
-  upload down; the limit is 50 MB (`CredentialReader::MAX_BYTES`).
+- **Formats.** The verifier also reads FLAC, AVI and plain text; they are not enabled here.
+  Add further MIME types to `CredentialReader::SUPPORTED_MIME_TYPES`. Microsoft Bing Image
+  Creator files are not fully supported by the verifier yet (see its `docs/comparison.md`).
+- **Synchronous on upload.** The check runs in the upload request. Measured with crafted
+  files of 49 MB (large chunks, millions of tiny PNG chunks or JPEG segments, padded MP4 and
+  WAV): at most 0.15 s and 6 MB of memory each. The limit is `maxFileSizeMb` (50 MB).
 - **Changes outside TYPO3** (FTP, deployment) do not trigger a new check. Run
   `c2pa:scan --force` in that case.
 
@@ -164,9 +214,10 @@ trained model) does not count.
   template must do the same: no `f:format.raw` on `{disclosure.agents}`. (The site set's
   partial uses `f:format.raw` only for the ViewHelper's finished, already escaped output.)
 - The verifier fetches nothing. A remote manifest declared by URL is not retrieved, and
-  OCSP requests are off.
+  OCSP requests are off. Only `c2pa:trust:update` downloads, from fixed HTTPS URLs, without
+  redirects, with a size limit, and it validates everything before replacing any file.
 
-Details of the last review: [SECURITY.md](SECURITY.md) (in German).
+Details of the last review: [SECURITY.md](SECURITY.md).
 
 ## Structure
 
@@ -175,10 +226,13 @@ Details of the last review: [SECURITY.md](SECURITY.md) (in German).
 | `Classes/Service/CredentialReader.php` | calls the verifier and maps the report to the four fields |
 | `Classes/EventListener/ReadCredentialsOnUpload.php` | checks after upload and replace |
 | `Classes/Command/ScanCommand.php` | `c2pa:scan` for existing files |
+| `Classes/Command/TrustUpdateCommand.php`, `Classes/Trust/TrustListUpdater.php` | `c2pa:trust:update`: downloads and validates the trust lists |
+| `Classes/Trust/TrustSettingsProvider.php` | loads the trust settings for the verifier |
+| `Classes/Configuration/ExtensionSettings.php`, `ext_conf_template.txt` | extension settings |
 | `Classes/Hooks/ProtectCredentialFields.php` | locks the check fields against DataHandler |
 | `Classes/Service/AiDisclosureResolver.php` | decides whether an AI notice is shown, and with which source |
 | `Classes/ViewHelpers/BadgeViewHelper.php` | `<c2pa:badge>`, renders `Resources/Private/Templates/Badge.fluid.html` |
-| `Configuration/Sets/Badge/` | site set `dkd/c2pa-reader-badge`: notice on fluid_styled_content images |
+| `Configuration/Sets/Badge/` | site set `dkd/c2pa-reader-badge`: notice on fluid_styled_content images, videos and audio |
 | `Configuration/TCA/Overrides/sys_file_metadata.php` | fields and tab in the backend |
 | `ext_tables.sql` | database fields |
 
@@ -202,19 +256,31 @@ on pull requests, with PHP 8.3 and 8.4.
 
 | Test | Covers |
 |---|---|
-| `Tests/Unit/Service/CredentialReaderTest.php` | all test images against the real verifier; tampered AI image → `invalid` and `ai=0`; unsupported type, size limit, read error |
+| `Tests/Unit/Service/CredentialReaderTest.php` | all test files against the real verifier: every format valid and AI, one changed byte → `invalid`; with the trust list snapshot the ChatGPT image is `trusted`; unsupported type, size limit, read error |
+| `Tests/Unit/Trust/TrustSettingsProviderTest.php` | loading the lists, precedence of `trust.settings.json`, broken files |
+| `Tests/Unit/Trust/TrustListUpdaterTest.php` | download (with a fake HTTP client), metadata, DigiCert fingerprint, nothing written when validation fails |
 | `Tests/Unit/Service/AiDisclosureResolverTest.php` | source of the AI notice, precedence of Content Credentials |
 | `Tests/Unit/Hooks/ProtectCredentialFieldsTest.php` | which fields the hook removes |
 | `Tests/Functional/Hooks/ProtectCredentialFieldsTest.php` | real DataHandler as admin and as editor: check fields stay, `title` and the manual AI field change |
-| `Tests/Functional/EventListener/ReadCredentialsOnUploadTest.php` | adding and replacing through the FAL API, through to `sys_file_metadata` |
-| `Tests/Functional/ViewHelpers/BadgeViewHelperTest.php` | output of `<c2pa:badge>`, id, labels, escaping of manifest values |
+| `Tests/Functional/EventListener/ReadCredentialsOnUploadTest.php` | adding (every format) and replacing through the FAL API, through to `sys_file_metadata` |
+| `Tests/Functional/ViewHelpers/BadgeViewHelperTest.php` | output of `<c2pa:badge>`, id, labels, trusted signer, escaping of manifest values |
+
+### Test files
+
+| Directory | Content |
+|---|---|
+| `Tests/Fixtures/c2pa-rs/` | JPEG/PNG from [`contentauth/c2pa-rs`](https://github.com/contentauth/c2pa-rs/tree/main/sdk/tests/fixtures) (MIT) |
+| `Tests/Fixtures/ai/` | an image made with ChatGPT; its signer is on the C2PA trust list |
+| `Tests/Fixtures/formats/` | one tiny AI-declared file per format, signed with the c2pa-rs test certificate |
+| `Tests/Fixtures/trust-list/` | snapshot of the C2PA trust lists (CC BY 4.0) for tests without network |
+
+The test certificate behind `Tests/Fixtures/formats/` expires on **2030-08-26**; after that
+these tests fail. `Build/Scripts/make-format-fixtures.sh` creates the files again (needs
+ffmpeg, ImageMagick, libheif and c2patool).
 
 ### Manual test in an instance
 
-Test images from
-[`contentauth/c2pa-rs`](https://github.com/contentauth/c2pa-rs/tree/main/sdk/tests/fixtures)
-(MIT) are in `Tests/Fixtures/c2pa-rs/`, a ChatGPT image is in `Tests/Fixtures/ai/`. This
-script adds them all to `fileadmin/c2pa-test/` through the FAL API, so the same events run
+This script adds all test files from `Tests/Fixtures/` to `fileadmin/c2pa-test/` through the FAL API, so the same events run
 as for an upload:
 
 ```bash
@@ -237,14 +303,25 @@ again. Expected results:
 | `exp-test1.png` | invalid (certificate expired) | 0 |
 | `libpng-test.png` | none | 0 |
 | `no_manifest.jpg` | none | 0 |
-| `chatgpt-gpt-image.png` | valid | 1 (`trainedAlgorithmicMedia`) |
+| `chatgpt-gpt-image.png` | valid, or trusted with trust lists | 1 (`trainedAlgorithmicMedia`) |
+| `ai.webp`, `ai.gif`, `ai.avif`, `ai.heic`, `ai.mp4`, `ai.mov`, `ai.wav`, `ai.mp3`, `ai.m4a` | valid | 1 |
 
 To cross-check, use the verifier's CLI: `vendor/bin/c2pa-verify <file>`.
 
+### Development note
+
+The ViewHelper uses constructor injection and is registered as a public service in
+`Configuration/Services.yaml`. After changing that file, flush the caches
+(`vendor/bin/typo3 cache:flush`). Otherwise a request may still use the old dependency
+injection container and fail with `ArgumentCountError: Too few arguments to function
+...BadgeViewHelper::__construct()`; with DDEV, `ddev restart` also clears PHP's opcode
+cache.
+
 ## Next steps
 
-1. Trust list check (`TrustSettings`) and `trusted` as a separate status.
-2. More formats (WebP, MP4) and a warning in the backend for `invalid`.
+1. A warning in the backend for `invalid`.
+2. A scheduler task that refreshes the trust lists and checks the files again.
+3. Registration on Packagist.
 
 ## License
 

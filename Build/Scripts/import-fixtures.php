@@ -40,7 +40,7 @@ $storage = GeneralUtility::makeInstance(StorageRepository::class)->getDefaultSto
 $folderName = 'c2pa-test';
 $folder = $storage->hasFolder($folderName) ? $storage->getFolder($folderName) : $storage->createFolder($folderName);
 
-foreach (glob(dirname(__DIR__, 2) . '/Tests/Fixtures/*/*.{jpg,png}', GLOB_BRACE) as $path) {
+foreach (glob(dirname(__DIR__, 2) . '/Tests/Fixtures/*/*.{jpg,png,webp,gif,avif,heic,mp4,mov,wav,mp3,m4a}', GLOB_BRACE) as $path) {
     // addFile() moves the source, so pass a temporary copy.
     $tmp = tempnam(sys_get_temp_dir(), 'c2pa');
     copy($path, $tmp);

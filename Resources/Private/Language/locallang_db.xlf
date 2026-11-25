@@ -5,7 +5,8 @@
             <trans-unit id="tab"><source>Content Credentials (C2PA)</source></trans-unit>
             <trans-unit id="status"><source>Status</source></trans-unit>
             <trans-unit id="status.none"><source>No Content Credentials</source></trans-unit>
-            <trans-unit id="status.valid"><source>Signature valid (issuer not checked against a trust list)</source></trans-unit>
+            <trans-unit id="status.trusted"><source>Signature valid, signer on the trust list</source></trans-unit>
+            <trans-unit id="status.valid"><source>Signature valid, signer unknown (not on the trust list, or no trust list installed)</source></trans-unit>
             <trans-unit id="status.invalid"><source>Signature invalid or manifest damaged</source></trans-unit>
             <trans-unit id="status.unreadable"><source>Not checked (format unsupported or read error)</source></trans-unit>
             <trans-unit id="ai"><source>Marked as AI-generated (claim of the manifest)</source></trans-unit>

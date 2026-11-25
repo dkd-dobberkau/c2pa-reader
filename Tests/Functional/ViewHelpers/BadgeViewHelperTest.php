@@ -46,6 +46,15 @@ final class BadgeViewHelperTest extends FunctionalTestCase
         self::assertStringContainsString('AI-generated', $html);
         self::assertStringContainsString('according to Content Credentials', $html);
         self::assertStringContainsString('(ChatGPT gpt-image)', $html);
+        self::assertStringNotContainsString('trust list', $html);
+    }
+
+    #[Test]
+    public function trustedSignerIsMentioned(): void
+    {
+        $html = $this->render(['uid' => 7, 'tx_c2pareader_ai' => 1, 'tx_c2pareader_status' => 'trusted']);
+
+        self::assertStringContainsString('<span class="c2pa-badge__trust">signer on the C2PA trust list</span>', $html);
     }
 
     #[Test]

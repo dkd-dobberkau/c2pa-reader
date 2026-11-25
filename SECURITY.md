@@ -51,11 +51,28 @@ itself was not reviewed.
   The frontend shows it separately ("according to the editors"); it can neither fake nor
   override a signed claim.
 
+### Addendum: trust lists, more formats (2026-11-25)
+
+- `c2pa:trust:update` is the only code that uses the network, and only when an
+  administrator runs it. It downloads from fixed HTTPS URLs (GitHub raw for the C2PA lists,
+  cacerts.digicert.com for the optional DigiCert root), follows no redirects, refuses
+  bodies over 5 MB, checks that the lists load as trust settings and that the DigiCert root
+  matches its published SHA-256 fingerprint, and only then replaces the files atomically.
+  If anything fails, the previous lists stay in place.
+- A broken trust file never blocks uploads: it is logged and files are checked without
+  trust (best status `valid`).
+- Runtime with crafted files just under the 50 MB limit (a 47 MB PNG chunk, 4 million tiny
+  PNG chunks, 12 million JPEG segments, padded MP4 and WAV): at most 0.15 s and 6 MB of
+  memory per file. The synchronous check in the upload request is therefore not a
+  practical denial-of-service vector at this limit.
+- One changed byte inside the C2PA box of an MP4 or MOV can leave the file `valid`: that
+  part of the manifest store is covered neither by the hash nor by the signature.
+  `c2patool` 0.29.0 gives the same verdict, so this is the format's behaviour, not a
+  verifier defect; the media data itself is covered.
+
 ### Known limitations (not a code defect)
 
 - `valid` does not mean trusted. Without a trust list, a self-signed manifest is also
   `valid` and can, for example, hide that an image is AI-generated.
-- The check runs synchronously in the upload request. How long the verifier takes for a
-  crafted file just under 50 MB has not been measured.
 - If files are changed outside TYPO3, the stored status is stale until
   `c2pa:scan --force` runs.

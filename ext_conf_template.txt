@@ -1,0 +1,5 @@
+# cat=basic; type=string; label=Trust directory: where c2pa:trust:update stores the trust lists, relative to the project root (or absolute). A file trust.settings.json in this directory (c2patool format) takes precedence over the downloaded lists.
+trustDirectory = var/c2pa
+
+# cat=basic; type=int+; label=Maximum file size in MB: larger files are not checked (the check runs synchronously during the upload).
+maxFileSizeMb = 50

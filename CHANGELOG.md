@@ -6,6 +6,20 @@ All notable changes to this extension. The format follows
 
 ## [Unreleased]
 
+### Added
+- Trust lists: `c2pa:trust:update` downloads the signer and TSA lists of the C2PA
+  conformance programme (optionally DigiCert Trusted Root G4 with `--with-digicert`); files
+  whose signer chains to an anchor get the new status `trusted`, and the AI notice adds
+  "signer on the C2PA trust list". A hand-made `trust.settings.json` is also supported.
+- Formats: WebP, GIF, AVIF, HEIC/HEIF, MP4, MOV, WAV, MP3 and M4A, with signed test files
+  for each (`Build/Scripts/make-format-fixtures.sh`).
+- The site set also shows the AI notice under fluid_styled_content videos and audio.
+- Extension settings `trustDirectory` and `maxFileSizeMb`.
+
+### Changed
+- `valid` now means "signer unknown"; with trust lists installed, known signers are
+  `trusted`. Run `c2pa:scan --force` after installing the lists.
+
 ## [0.1.1] - 2026-11-25
 
 ### Changed

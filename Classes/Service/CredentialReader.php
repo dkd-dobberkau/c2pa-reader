@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Dkd\C2paReader\Service;
 
+use Dkd\C2paReader\Configuration\ExtensionSettings;
+use Dkd\C2paReader\Trust\TrustSettingsProvider;
 use Provemark\C2paVerifier\Report\ValidationState;
 use Provemark\C2paVerifier\Verifier\VerificationReport;
 use Provemark\C2paVerifier\Verifier\Verifier;
@@ -14,14 +16,16 @@ use TYPO3\CMS\Core\Resource\FileInterface;
  * Reads C2PA Content Credentials from a FAL file and returns the values
  * for the fields in sys_file_metadata.
  *
- * Meaning: "valid" only says that signature and hashes match the manifest.
- * Whether the signer is trustworthy (trust list) is NOT checked here:
- * the verifier runs without TrustSettings and then returns "Valid" at best.
+ * Meaning: "valid" says that signature and hashes match the manifest; the
+ * signer is unknown. "trusted" says the same, and the signer's certificate
+ * chains to an anchor of the trust lists (see TrustSettingsProvider). Without
+ * trust lists, "valid" is the best status.
  */
 final class CredentialReader
 {
     public const STATUS_NONE = 'none';
     public const STATUS_VALID = 'valid';
+    public const STATUS_TRUSTED = 'trusted';
     public const STATUS_INVALID = 'invalid';
     public const STATUS_UNREADABLE = 'unreadable';
 
@@ -34,11 +38,15 @@ final class CredentialReader
     ];
 
     /**
-     * MIME types that are checked. The verifier detects the format from the magic
-     * bytes itself and supports much more (WebP, GIF, AVIF/HEIC, MP4, WAV, MP3 ...);
-     * the list deliberately limits what the PoC touches.
+     * MIME types that are checked, including the aliases TYPO3 and fileinfo use.
+     * The verifier detects the format from the magic bytes itself, so a wrong
+     * extension does not matter.
      */
-    public const SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png'];
+    public const SUPPORTED_MIME_TYPES = [
+        'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'image/heic', 'image/heif',
+        'video/mp4', 'video/quicktime',
+        'audio/wav', 'audio/x-wav', 'audio/wave', 'audio/vnd.wave', 'audio/mpeg', 'audio/mp4', 'audio/x-m4a',
+    ];
 
     /** IPTC digitalSourceType values that mean creation by a trained model. */
     private const AI_SOURCE_TYPES = [
@@ -46,15 +54,17 @@ final class CredentialReader
         'compositeWithTrainedAlgorithmicMedia',
     ];
 
-    /** Upper limit so that no upload exhausts PHP memory (bytes). */
-    private const MAX_BYTES = 50 * 1024 * 1024;
-
-    public function __construct(private readonly LoggerInterface $logger) {}
+    public function __construct(
+        private readonly LoggerInterface $logger,
+        private readonly ExtensionSettings $settings,
+        private readonly TrustSettingsProvider $trust,
+    ) {}
 
     public function supports(FileInterface $file): bool
     {
+        // The check runs during the upload request; the size limit keeps it short.
         return in_array($file->getMimeType(), self::SUPPORTED_MIME_TYPES, true)
-            && $file->getSize() <= self::MAX_BYTES;
+            && $file->getSize() <= $this->settings->maxFileSizeBytes();
     }
 
     /**
@@ -79,7 +89,7 @@ final class CredentialReader
             if ($stream === false) {
                 throw new \RuntimeException('File could not be opened for reading.');
             }
-            $report = (new Verifier())->verify($stream);
+            $report = (new Verifier())->verify($stream, $this->trust->get());
 
             if (!$report->hasManifest) {
                 $result['tx_c2pareader_status'] = self::STATUS_NONE;
@@ -89,7 +99,11 @@ final class CredentialReader
             $valid = $report->result->state !== ValidationState::Invalid;
             $activeManifest = $this->activeManifest($report);
 
-            $result['tx_c2pareader_status'] = $valid ? self::STATUS_VALID : self::STATUS_INVALID;
+            $result['tx_c2pareader_status'] = match ($report->result->state) {
+                ValidationState::Trusted => self::STATUS_TRUSTED,
+                ValidationState::Valid => self::STATUS_VALID,
+                ValidationState::Invalid => self::STATUS_INVALID,
+            };
             // The AI flag is only a claim made by the manifest.
             // It is only taken over when the signature is valid.
             $result['tx_c2pareader_ai'] = ($valid && $this->isAiGenerated($activeManifest)) ? 1 : 0;
