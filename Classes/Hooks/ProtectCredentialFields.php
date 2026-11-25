@@ -8,12 +8,12 @@ use Dkd\C2paReader\Service\CredentialReader;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 
 /**
- * Verhindert, dass die C2PA-Felder über DataHandler geschrieben werden.
+ * Prevents the C2PA fields from being written through DataHandler.
  *
- * `readOnly` im TCA wirkt nur in der Anzeige: ein Redakteur mit Schreibrecht auf
- * sys_file_metadata könnte sonst per manipuliertem Formular-POST, Import oder
- * Workspace-Datensatz z. B. "invalid" zu "valid" machen. Die Felder schreibt
- * ausschließlich die Extension selbst über MetaDataRepository (kein DataHandler).
+ * `readOnly` in TCA only affects the display: otherwise an editor with write access to
+ * sys_file_metadata could turn "invalid" into "valid" with a manipulated form POST, an
+ * import or a workspace record. Only the extension itself writes these fields, through
+ * MetaDataRepository (not DataHandler).
  */
 final class ProtectCredentialFields
 {

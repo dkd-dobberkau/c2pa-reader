@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # composer.json verlangt ^8.3; lokal wird mit 8.4 entwickelt.
+        # composer.json requires ^8.3; local development uses 8.4.
         php: ['8.3', '8.4']
     steps:
       - uses: actions/checkout@v7

@@ -1,36 +1,42 @@
 # Changelog
 
-Alle wichtigen Änderungen an dieser Extension. Format nach
-[Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
-[Semantic Versioning](https://semver.org/lang/de/).
+All notable changes to this extension. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow
+[Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
 ### Added
-- Prüfung von C2PA Content Credentials beim Upload und Ersetzen von JPEG/PNG (FAL-Events).
-- Befehl `c2pa:scan` (mit `--force`) für den Dateibestand.
-- Tab „Content Credentials (C2PA)" in den Dateimetadaten: Status, KI-Markierung,
-  Software-Agents, Zeitpunkt der Prüfung.
-- DataHandler-Hook, der die C2PA-Felder gegen Schreiben durch Benutzer sperrt.
-- Testbilder aus `contentauth/c2pa-rs` in `Tests/Fixtures/c2pa-rs/`, ein ChatGPT-Bild
-  in `Tests/Fixtures/ai/` sowie `Build/Scripts/import-fixtures.php`
-  zum Einspielen in eine lokale Instanz.
-- KI-Hinweis im Frontend: ViewHelper `<c2pa:badge>` mit überschreibbarem Template und
-  Site Set `dkd/c2pa-reader-badge`, das den Hinweis in die `figcaption` der Bilder von
-  fluid_styled_content setzt (Texte en/de, schlichtes CSS).
-- Feld `tx_c2pareader_ai_manual`: KI-Kennzeichnung durch die Redaktion, z. B. für Bilder
-  ohne Content Credentials. Im Frontend als „laut Redaktion" ausgewiesen.
-- Unit- und Functional-Tests (typo3/testing-framework, PHPUnit 12, SQLite):
-  `composer test`, in GitHub Actions mit PHP 8.3 und 8.4.
+- Verification of C2PA Content Credentials when JPEG/PNG files are uploaded or replaced
+  (FAL events).
+- Command `c2pa:scan` (with `--force`) for existing files.
+- Tab "Content Credentials (C2PA)" in the file metadata: status, AI flag, software agents,
+  time of the check.
+- DataHandler hook that locks the C2PA fields against writes by users.
+- Test images from `contentauth/c2pa-rs` in `Tests/Fixtures/c2pa-rs/`, a ChatGPT image in
+  `Tests/Fixtures/ai/`, and `Build/Scripts/import-fixtures.php` to add them to a local
+  instance.
+- AI notice in the frontend: ViewHelper `<c2pa:badge>` with an overridable template, and the
+  site set `dkd/c2pa-reader-badge`, which adds the notice to the `figcaption` of
+  fluid_styled_content images (labels en/de, plain CSS).
+- Field `tx_c2pareader_ai_manual`: AI label set by editors, for example for images without
+  Content Credentials. Shown in the frontend as "according to the editors".
+- Unit and functional tests (typo3/testing-framework, PHPUnit 12, SQLite): `composer test`,
+  run in GitHub Actions with PHP 8.3 and 8.4.
+
+### Changed
+- README, SECURITY.md, CHANGELOG, fixture notes, code comments and the composer
+  description are in English.
 
 ### Fixed
-- `CredentialReader`, `BadgeViewHelper` und der Upload-Listener riefen `getUid()` auf
-  `FileInterface` auf, das diese Methode nicht hat. Jetzt `getProperty('uid')` bzw. Prüfung
-  auf `File`; der Listener ignoriert Dateien ohne Metadaten.
-- `CredentialReader` nutzt die echte API von `provemark/c2pa-verifier`
-  (vorher Klassen des Schwesterpakets `provemark/content-credentials`).
-- `c2pa:scan`: `ConnectionPool::getQueryBuilderForTable()` statt einer nicht
-  vorhandenen Methode.
+- `CredentialReader`, `BadgeViewHelper` and the upload listener called `getUid()` on
+  `FileInterface`, which has no such method. They now use `getProperty('uid')` or check for
+  `File`; the listener ignores files without metadata.
+- `CredentialReader` uses the actual API of `provemark/c2pa-verifier` (it previously used
+  classes of the sister package `provemark/content-credentials`).
+- `c2pa:scan`: `ConnectionPool::getQueryBuilderForTable()` instead of a method that does
+  not exist.
 
 ### Security
-- C2PA-Felder ließen sich trotz `readOnly` per DataHandler überschreiben. Siehe SECURITY.md.
+- The C2PA fields could be overwritten through DataHandler despite `readOnly`. See
+  SECURITY.md.

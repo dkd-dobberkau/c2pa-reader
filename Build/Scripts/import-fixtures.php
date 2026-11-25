@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 /**
- * Spielt die Testbilder aus Tests/Fixtures/* über die FAL-API in fileadmin/c2pa-test/ ein.
- * Über die FAL-API, damit AfterFileAddedEvent feuert wie bei einem Backend-Upload.
- * Vorhandene Dateien werden ersetzt (AfterFileReplacedEvent), also neu geprüft.
+ * Adds the test images from Tests/Fixtures/* to fileadmin/c2pa-test/ through the FAL API,
+ * so that AfterFileAddedEvent fires as for a backend upload.
+ * Existing files are replaced (AfterFileReplacedEvent) and therefore checked again.
  *
- * Nur für lokale Entwicklungsinstanzen.
+ * For local development instances only.
  *
- *   ddev exec php /var/www/packages/c2pa_reader/Build/Scripts/import-fixtures.php [/pfad/zu/vendor/autoload.php]
+ *   ddev exec php /var/www/packages/c2pa_reader/Build/Scripts/import-fixtures.php [/path/to/vendor/autoload.php]
  */
 
 use TYPO3\CMS\Core\Authentication\CommandLineUserAuthentication;
@@ -41,7 +41,7 @@ $folderName = 'c2pa-test';
 $folder = $storage->hasFolder($folderName) ? $storage->getFolder($folderName) : $storage->createFolder($folderName);
 
 foreach (glob(dirname(__DIR__, 2) . '/Tests/Fixtures/*/*.{jpg,png}', GLOB_BRACE) as $path) {
-    // addFile() verschiebt die Quelle, daher eine temporäre Kopie übergeben.
+    // addFile() moves the source, so pass a temporary copy.
     $tmp = tempnam(sys_get_temp_dir(), 'c2pa');
     copy($path, $tmp);
     $file = $storage->addFile($tmp, $folder, basename($path), DuplicationBehavior::REPLACE);

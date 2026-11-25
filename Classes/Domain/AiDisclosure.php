@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Dkd\C2paReader\Domain;
 
 /**
- * Ein KI-Hinweis für eine Datei: woher die Angabe stammt und welche Software genannt ist.
+ * An AI notice for a file: where the claim comes from and which software is named.
  */
 final readonly class AiDisclosure
 {
-    /** Das signierte Manifest der Datei sagt "KI-generiert" (Signatur gültig). */
+    /** The signed manifest of the file says "AI-generated" (signature valid). */
     public const SOURCE_CREDENTIALS = 'credentials';
-    /** Die Redaktion hat die Datei als KI-generiert markiert. */
+    /** An editor has marked the file as AI-generated. */
     public const SOURCE_EDITOR = 'editor';
 
     public function __construct(

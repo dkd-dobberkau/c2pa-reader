@@ -16,7 +16,7 @@ use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 
 /**
- * Bestandsdateien nachträglich prüfen: vendor/bin/typo3 c2pa:scan [--force]
+ * Checks existing files: vendor/bin/typo3 c2pa:scan [--force]
  */
 #[AsCommand(name: 'c2pa:scan', description: 'Scans existing JPEG/PNG files for C2PA Content Credentials.')]
 final class ScanCommand extends Command

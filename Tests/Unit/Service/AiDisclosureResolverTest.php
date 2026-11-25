@@ -80,7 +80,7 @@ final class AiDisclosureResolverTest extends UnitTestCase
     #[Test]
     public function databaseStringValuesAreAccepted(): void
     {
-        // Werte aus der Datenbank kommen je nach Treiber als String.
+        // Depending on the driver, values from the database arrive as strings.
         $disclosure = (new AiDisclosureResolver())->resolve($this->file(['tx_c2pareader_ai_manual' => '1']));
 
         self::assertSame(AiDisclosure::SOURCE_EDITOR, $disclosure?->source);

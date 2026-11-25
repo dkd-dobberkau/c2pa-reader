@@ -1,18 +1,18 @@
-# Testbilder aus c2pa-rs
+# Test images from c2pa-rs
 
-Quelle: <https://github.com/contentauth/c2pa-rs/tree/main/sdk/tests/fixtures>,
-Lizenz MIT (siehe `LICENSE-MIT`) oder Apache-2.0, nach Wahl.
+Source: <https://github.com/contentauth/c2pa-rs/tree/main/sdk/tests/fixtures>,
+licensed MIT (see `LICENSE-MIT`) or Apache-2.0, at your option.
 
-| Datei | erwarteter Status | KI | Inhalt |
+| File | Expected status | AI | Content |
 |---|---|---|---|
-| `C.jpg` | valid | 0 | erzeugt, `digitalSourceType` `algorithmicMedia` (kein trainiertes Modell) |
-| `CA.jpg` | valid | 0 | geöffnet und bearbeitet (`c2pa.opened`, `c2pa.color_adjustments`) |
-| `E-sig-CA.jpg` | invalid | 0 | Signatur passt nicht (`claimSignature.mismatch`) |
-| `exp-test1.png` | invalid | 0 | Photoshop, Signaturzertifikat 2023 abgelaufen (`signingCredential.expired`) |
-| `libpng-test.png` | none | 0 | kein Manifest |
-| `no_manifest.jpg` | none | 0 | kein Manifest |
+| `C.jpg` | valid | 0 | created, `digitalSourceType` `algorithmicMedia` (no trained model) |
+| `CA.jpg` | valid | 0 | opened and edited (`c2pa.opened`, `c2pa.color_adjustments`) |
+| `E-sig-CA.jpg` | invalid | 0 | signature mismatch (`claimSignature.mismatch`) |
+| `exp-test1.png` | invalid | 0 | Photoshop, signing certificate expired in 2023 (`signingCredential.expired`) |
+| `libpng-test.png` | none | 0 | no manifest |
+| `no_manifest.jpg` | none | 0 | no manifest |
 
-Ein echtes KI-Bild (Status `valid`, KI `1`) liegt in `../ai/`.
+A real AI image (status `valid`, AI `1`) is in `../ai/`.
 
-Einspielen in eine lokale Instanz: `Build/Scripts/import-fixtures.php`, siehe README im
-Wurzelverzeichnis.
+To add them to a local instance: `Build/Scripts/import-fixtures.php`, see the README in the
+root directory.

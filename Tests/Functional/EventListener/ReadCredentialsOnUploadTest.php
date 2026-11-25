@@ -14,7 +14,7 @@ use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 /**
- * Vom Hinzufügen über die FAL-API (wie beim Backend-Upload) bis in sys_file_metadata.
+ * From adding a file through the FAL API (as with a backend upload) to sys_file_metadata.
  */
 final class ReadCredentialsOnUploadTest extends FunctionalTestCase
 {
@@ -36,7 +36,7 @@ final class ReadCredentialsOnUploadTest extends FunctionalTestCase
 
     private function add(string $fixture, string $name): File
     {
-        // addFile() verschiebt die Quelle; eine Kopie übergeben.
+        // addFile() moves the source; pass a copy.
         $tmp = $this->instancePath . '/typo3temp/' . uniqid('c2pa', true);
         copy(self::FIXTURES . $fixture, $tmp);
 

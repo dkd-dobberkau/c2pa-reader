@@ -13,8 +13,8 @@ use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 
 /**
- * Prüft Content Credentials nach Upload oder Ersetzen einer Datei
- * und schreibt das Ergebnis in sys_file_metadata.
+ * Checks Content Credentials after a file is uploaded or replaced
+ * and writes the result to sys_file_metadata.
  */
 final class ReadCredentialsOnUpload
 {
@@ -37,7 +37,7 @@ final class ReadCredentialsOnUpload
 
     private function process(FileInterface $file): void
     {
-        // Metadaten gibt es nur für indizierte Dateien (File), nicht für ProcessedFile o. Ä.
+        // Only indexed files (File) have metadata, not ProcessedFile and the like.
         if (!$file instanceof File || !$this->reader->supports($file)) {
             return;
         }

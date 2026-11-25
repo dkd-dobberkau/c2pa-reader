@@ -8,12 +8,12 @@ use Dkd\C2paReader\Domain\AiDisclosure;
 use TYPO3\CMS\Core\Resource\FileInterface;
 
 /**
- * Entscheidet, ob für eine Datei ein KI-Hinweis angezeigt wird.
+ * Decides whether an AI notice is shown for a file.
  *
- * Die Angabe aus den Content Credentials hat Vorrang vor der Angabe der Redaktion,
- * weil sie signiert ist. tx_c2pareader_ai ist nur bei gültiger Signatur gesetzt
- * (siehe CredentialReader). Funktioniert mit File und FileReference: TYPO3 reicht
- * die Metadaten über getProperty() durch.
+ * The Content Credentials claim takes precedence over the editors' flag because it is
+ * signed. tx_c2pareader_ai is only set when the signature is valid (see
+ * CredentialReader). Works with File and FileReference: TYPO3 passes the metadata
+ * through getProperty().
  */
 final class AiDisclosureResolver
 {

@@ -12,8 +12,8 @@ use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 /**
- * Der echte DataHandler darf die Prüf-Felder nicht schreiben, auch nicht als Admin.
- * Regressionstest für den Befund aus SECURITY.md.
+ * The real DataHandler must not write the check fields, not even as admin.
+ * Regression test for the finding in SECURITY.md.
  */
 final class ProtectCredentialFieldsTest extends FunctionalTestCase
 {
@@ -39,8 +39,8 @@ final class ProtectCredentialFieldsTest extends FunctionalTestCase
     #[DataProvider('userProvider')]
     public function credentialFieldsCannotBeForgedButOtherFieldsCanBeEdited(int $userUid): void
     {
-        // Redakteur: Gruppe mit Schreibrecht auf sys_file_metadata, Freigabe für title und das
-        // manuelle KI-Feld und einem beschreibbaren File Mount (siehe be_users.csv).
+        // Editor: group with write access to sys_file_metadata, permission for title and the
+        // manual AI field, and a writable file mount (see be_users.csv).
         $backendUser = $this->setUpBackendUser($userUid);
         $GLOBALS['LANG'] = $this->get(LanguageServiceFactory::class)->createFromUserPreferences($backendUser);
 

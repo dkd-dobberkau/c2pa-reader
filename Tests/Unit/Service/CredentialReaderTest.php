@@ -13,7 +13,7 @@ use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 /**
- * Läuft gegen die echten Testbilder in Tests/Fixtures und den echten Verifier.
+ * Runs against the real test images in Tests/Fixtures and the real verifier.
  */
 final class CredentialReaderTest extends UnitTestCase
 {
@@ -90,7 +90,7 @@ final class CredentialReaderTest extends UnitTestCase
     #[Test]
     public function aiFlagIsNotSetWhenSignatureIsInvalid(): void
     {
-        // Das ChatGPT-Bild mit einem veränderten Byte im Bildinhalt: Manifest noch da, Hash passt nicht mehr.
+        // The ChatGPT image with one changed byte in the image data: manifest still there, hash no longer matches.
         $bytes = (string)file_get_contents(self::FIXTURES . 'ai/chatgpt-gpt-image.png');
         $offset = strlen($bytes) - 64;
         $bytes[$offset] = chr(ord($bytes[$offset]) ^ 0xFF);

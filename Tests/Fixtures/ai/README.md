@@ -1,7 +1,7 @@
-# KI-Testbild
+# AI test image
 
-| Datei | erwarteter Status | KI | Inhalt |
+| File | Expected status | AI | Content |
 |---|---|---|---|
-| `chatgpt-gpt-image.png` | valid | 1 | erzeugt mit ChatGPT (gpt-image), Manifest von „OpenAI Media Service API", `digitalSourceType` `trainedAlgorithmicMedia` |
+| `chatgpt-gpt-image.png` | valid | 1 | created with ChatGPT (gpt-image), manifest by "OpenAI Media Service API", `digitalSourceType` `trainedAlgorithmicMedia` |
 
-Von dkd intern erzeugt. Nur für Tests dieser Extension.
+Created internally at dkd. For testing this extension only.

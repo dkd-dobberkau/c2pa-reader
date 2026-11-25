@@ -1,4 +1,4 @@
-/* KI-Hinweis von EXT:c2pa_reader. Bewusst schlicht; im Sitepackage überschreiben. */
+/* AI notice of EXT:c2pa_reader. Deliberately plain; override in your site package. */
 .c2pa-badge {
     display: inline-flex;
     flex-wrap: wrap;

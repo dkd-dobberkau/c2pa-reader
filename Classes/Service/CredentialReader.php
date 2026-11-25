@@ -11,12 +11,12 @@ use Psr\Log\LoggerInterface;
 use TYPO3\CMS\Core\Resource\FileInterface;
 
 /**
- * Liest C2PA Content Credentials aus einer FAL-Datei und liefert die Werte
- * für die Felder in sys_file_metadata.
+ * Reads C2PA Content Credentials from a FAL file and returns the values
+ * for the fields in sys_file_metadata.
  *
- * Aussagekraft: "valid" heißt nur, dass Signatur und Hashes zum Manifest passen.
- * Ob der Aussteller vertrauenswürdig ist (Trust List), wird hier NICHT geprüft:
- * der Verifier läuft ohne TrustSettings und liefert dann höchstens "Valid".
+ * Meaning: "valid" only says that signature and hashes match the manifest.
+ * Whether the signer is trustworthy (trust list) is NOT checked here:
+ * the verifier runs without TrustSettings and then returns "Valid" at best.
  */
 final class CredentialReader
 {
@@ -25,7 +25,7 @@ final class CredentialReader
     public const STATUS_INVALID = 'invalid';
     public const STATUS_UNREADABLE = 'unreadable';
 
-    /** Die Felder in sys_file_metadata, die nur diese Klasse befüllt. */
+    /** The fields in sys_file_metadata that only this class fills. */
     public const FIELDS = [
         'tx_c2pareader_status',
         'tx_c2pareader_ai',
@@ -34,19 +34,19 @@ final class CredentialReader
     ];
 
     /**
-     * MIME-Typen, die geprüft werden. Der Verifier erkennt das Format selbst an den
-     * Magic Bytes und kann deutlich mehr (WebP, GIF, AVIF/HEIC, MP4, WAV, MP3 ...);
-     * die Liste begrenzt bewusst, was der PoC anfasst.
+     * MIME types that are checked. The verifier detects the format from the magic
+     * bytes itself and supports much more (WebP, GIF, AVIF/HEIC, MP4, WAV, MP3 ...);
+     * the list deliberately limits what the PoC touches.
      */
     public const SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png'];
 
-    /** IPTC digitalSourceType-Werte, die eine Erzeugung durch ein trainiertes Modell bedeuten. */
+    /** IPTC digitalSourceType values that mean creation by a trained model. */
     private const AI_SOURCE_TYPES = [
         'trainedAlgorithmicMedia',
         'compositeWithTrainedAlgorithmicMedia',
     ];
 
-    /** Obergrenze, damit kein Upload den PHP-Speicher sprengt (Bytes). */
+    /** Upper limit so that no upload exhausts PHP memory (bytes). */
     private const MAX_BYTES = 50 * 1024 * 1024;
 
     public function __construct(private readonly LoggerInterface $logger) {}
@@ -90,13 +90,13 @@ final class CredentialReader
             $activeManifest = $this->activeManifest($report);
 
             $result['tx_c2pareader_status'] = $valid ? self::STATUS_VALID : self::STATUS_INVALID;
-            // Die KI-Markierung ist nur eine Behauptung des Manifests.
-            // Sie wird nur bei gültiger Signatur übernommen.
+            // The AI flag is only a claim made by the manifest.
+            // It is only taken over when the signature is valid.
             $result['tx_c2pareader_ai'] = ($valid && $this->isAiGenerated($activeManifest)) ? 1 : 0;
             $result['tx_c2pareader_agents'] = mb_substr(implode(', ', $this->softwareAgents($activeManifest)), 0, 255);
         } catch (\Throwable $e) {
             $this->logger->warning('C2PA read failed for file {uid} ({identifier}): {message}', [
-                // FileInterface hat kein getUid(); File und FileReference liefern die uid als Property.
+                // FileInterface has no getUid(); File and FileReference provide the uid as a property.
                 'uid' => $file->hasProperty('uid') ? $file->getProperty('uid') : null,
                 'identifier' => $file->getIdentifier(),
                 'message' => $e->getMessage(),
@@ -112,7 +112,7 @@ final class CredentialReader
     }
 
     /**
-     * Das aktive Manifest in der Form, die c2patool ausgibt (claim_generator_info, assertions ...).
+     * The active manifest in the shape c2patool prints (claim_generator_info, assertions ...).
      *
      * @return array<string, mixed>
      */
@@ -151,7 +151,7 @@ final class CredentialReader
     {
         foreach ($this->actions($manifest) as $action) {
             $sourceType = (string)($action['digitalSourceType'] ?? '');
-            // Wert ist eine IPTC-URI, z. B. http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia
+            // The value is an IPTC URI, e.g. http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia
             if (in_array(basename($sourceType), self::AI_SOURCE_TYPES, true)) {
                 return true;
             }
@@ -161,7 +161,7 @@ final class CredentialReader
     }
 
     /**
-     * Claim Generator und die softwareAgents der Actions, ohne Dubletten.
+     * Claim generator and the softwareAgents of the actions, without duplicates.
      *
      * @param array<string, mixed> $manifest
      * @return list<string>
@@ -170,7 +170,7 @@ final class CredentialReader
     {
         $agents = [];
         $generators = $manifest['claim_generator_info'] ?? [];
-        // Claim v2 hat ein einzelnes Objekt, v1 eine Liste.
+        // Claim v2 has a single object, v1 a list.
         if (is_array($generators) && isset($generators['name'])) {
             $generators = [$generators];
         }
@@ -187,7 +187,7 @@ final class CredentialReader
         return array_values(array_unique(array_filter($agents, static fn(string $agent): bool => $agent !== '')));
     }
 
-    /** softwareAgent ist je nach Claim-Version ein String oder ein Objekt {name, version}. */
+    /** Depending on the claim version, softwareAgent is a string or an object {name, version}. */
     private function agentName(mixed $agent): string
     {
         if (is_string($agent)) {

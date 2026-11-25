@@ -1,58 +1,59 @@
-# Sicherheit
+# Security
 
-## Lücken melden
+## Reporting a vulnerability
 
-Bitte nicht als öffentliches Issue, sondern direkt an dkd Internet Service GmbH.
+Please do not open a public issue. Contact dkd Internet Service GmbH directly.
 
-## Review vom 2026-11-25
+## Review of 2026-11-25
 
-Gezielter Quellcode-Review aller Dateien der Extension (Stand nach dem Umbau auf
-`provemark/c2pa-verifier` 0.11.5), mit lokaler Prüfung in einer DDEV-Instanz
-(TYPO3 14.3.12, PHP 8.4). Kein vollständiger Audit; das Paket `provemark/c2pa-verifier`
-selbst wurde nicht geprüft.
+Focused source review of all files of the extension (after the switch to
+`provemark/c2pa-verifier` 0.11.5), with local checks in a DDEV instance
+(TYPO3 14.3.12, PHP 8.4). This was not a full audit; the package `provemark/c2pa-verifier`
+itself was not reviewed.
 
-### Behoben
+### Fixed
 
-**C2PA-Felder per DataHandler überschreibbar** (Schwere: mittel)
+**C2PA fields could be overwritten through DataHandler** (severity: medium)
 
-- *Wer:* jeder Backend-Benutzer mit Schreibrecht auf `sys_file_metadata`. Die Felder
-  sind nicht `exclude`, also braucht es keine eigene Freigabe.
-- *Was:* `readOnly` im TCA steuert nur die Anzeige. DataHandler hat die Felder trotzdem
-  geschrieben, etwa über einen manipulierten Formular-POST, einen Import oder einen
-  Workspace-Datensatz.
-- *Folge:* Der Herkunftsnachweis ließ sich fälschen. Lokal nachgestellt: Status `invalid`
-  → `valid`, Agent „Forged Camera 1.0", ohne Fehlermeldung.
-- *Fix:* `Classes/Hooks/ProtectCredentialFields.php` entfernt die vier Felder in
-  `processDatamap_preProcessFieldArray` aus jedem eingehenden Datensatz für
-  `sys_file_metadata`. Die Extension schreibt selbst über `MetaDataRepository`, also nicht
-  über DataHandler. Nach dem Fix: der Titel ändert sich, die C2PA-Felder bleiben; Upload
-  und `c2pa:scan` schreiben weiter.
+- *Who:* any backend user with write access to `sys_file_metadata`. The fields are not
+  `exclude`, so no separate permission was needed.
+- *What:* `readOnly` in TCA only controls the display. DataHandler still wrote the fields,
+  for example from a manipulated form POST, an import or a workspace record.
+- *Impact:* the provenance record could be forged. Reproduced locally: status `invalid`
+  → `valid`, agent "Forged Camera 1.0", with no error.
+- *Fix:* `Classes/Hooks/ProtectCredentialFields.php` removes the four fields from every
+  incoming `sys_file_metadata` record in `processDatamap_preProcessFieldArray`. The
+  extension writes them itself through `MetaDataRepository`, not through DataHandler.
+  After the fix the title changes, the C2PA fields stay; upload and `c2pa:scan` still
+  write them. `Tests/Functional/Hooks/ProtectCredentialFieldsTest.php` covers this for an
+  admin and for an editor, and fails when the hook is disabled.
 
-### Geprüft, kein Befund
+### Checked, no finding
 
-- **Ausgabe von Manifest-Daten:** Agents stehen in einem `readOnly`-Input-Feld; FormEngine
-  escaped den Wert.
-- **Netzwerk / SSRF:** Der Verifier ruft keine URLs ab (Remote-Manifest wird nur gemeldet,
-  OCSP-Quelle ist `NoRevocationSource`).
-- **SQL:** `c2pa:scan` nutzt den QueryBuilder mit benannten Parametern.
-- **Dateizugriff:** Gelesen wird über `getForLocalProcessing(false)` nur die Datei, die
-  das Event oder der Scan liefert. Der Stream wird in `finally` geschlossen.
-- **Speicher:** Dateien über 50 MB werden nicht geprüft. Der Verifier liest als Stream
-  und begrenzt CBOR-Strukturen (`CborBudget`).
+- **Output of manifest data:** agents are shown in a `readOnly` input field; FormEngine
+  escapes the value.
+- **Network / SSRF:** the verifier fetches no URLs (a remote manifest is only reported,
+  the OCSP source is `NoRevocationSource`).
+- **SQL:** `c2pa:scan` uses the QueryBuilder with named parameters.
+- **File access:** only the file passed by the event or the scan is read, through
+  `getForLocalProcessing(false)`. The stream is closed in `finally`.
+- **Memory:** files over 50 MB are not checked. The verifier reads from a stream and
+  limits CBOR structures (`CborBudget`).
 
-### Nachtrag: KI-Hinweis im Frontend
+### Addendum: AI notice in the frontend
 
-- Agents aus dem Manifest werden im Badge escaped. Lokal geprüft mit
-  `<script>alert(1)</script>" onmouseover=x` als Agent: Ausgabe als `&lt;script&gt;…&quot;`.
-- `tx_c2pareader_ai_manual` ist absichtlich bearbeitbar und nicht vom DataHandler-Hook
-  gesperrt. Das Frontend weist es getrennt aus („laut Redaktion"); eine signierte Angabe
-  lässt sich damit weder vortäuschen noch überschreiben.
+- Agents from the manifest are escaped in the badge. Checked locally with
+  `<script>alert(1)</script>" onmouseover=x` as the agent: output as `&lt;script&gt;…&quot;`.
+  Covered by `Tests/Functional/ViewHelpers/BadgeViewHelperTest.php`.
+- `tx_c2pareader_ai_manual` is editable on purpose and not locked by the DataHandler hook.
+  The frontend shows it separately ("according to the editors"); it can neither fake nor
+  override a signed claim.
 
-### Bekannte Grenzen (kein Fehler im Code)
+### Known limitations (not a code defect)
 
-- `valid` bedeutet nicht vertrauenswürdig. Ohne Trust List ist ein selbst signiertes
-  Manifest ebenfalls `valid` und kann z. B. eine KI-Herkunft verschweigen.
-- Die Prüfung läuft synchron im Upload-Request. Wie lange der Verifier für eine präparierte
-  Datei knapp unter 50 MB braucht, wurde nicht gemessen.
-- Werden Dateien außerhalb von TYPO3 geändert, ist der gespeicherte Status veraltet, bis
-  `c2pa:scan --force` läuft.
+- `valid` does not mean trusted. Without a trust list, a self-signed manifest is also
+  `valid` and can, for example, hide that an image is AI-generated.
+- The check runs synchronously in the upload request. How long the verifier takes for a
+  crafted file just under 50 MB has not been measured.
+- If files are changed outside TYPO3, the stored status is stale until
+  `c2pa:scan --force` runs.

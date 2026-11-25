@@ -37,7 +37,7 @@ ExtensionManagementUtility::addTCAcolumns('sys_file_metadata', [
             'readOnly' => true,
         ],
     ],
-    // Von der Redaktion gepflegt, z. B. für KI-Bilder ohne (oder mit entferntem) Manifest.
+    // Maintained by editors, e.g. for AI images without a manifest (or with a removed one).
     'tx_c2pareader_ai_manual' => [
         'label' => $lll . 'ai_manual',
         'description' => $lll . 'ai_manual.description',

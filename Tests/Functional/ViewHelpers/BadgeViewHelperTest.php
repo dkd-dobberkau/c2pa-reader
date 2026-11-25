@@ -22,7 +22,7 @@ final class BadgeViewHelperTest extends FunctionalTestCase
         $file->method('getProperty')->willReturnCallback(static fn(string $key): mixed => $properties[$key] ?? null);
 
         $template = tempnam($this->instancePath . '/typo3temp', 'badge') . '.fluid.html';
-        // Ohne Namespace-Deklaration: prüft zugleich die globale Registrierung von "c2pa".
+        // No namespace declaration: this also checks the global registration of "c2pa".
         file_put_contents($template, '<c2pa:badge file="{file}"' . $arguments . ' />');
 
         $view = $this->get(ViewFactoryInterface::class)->create(new ViewFactoryData(templatePathAndFilename: $template));
