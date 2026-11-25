@@ -132,7 +132,8 @@ Details zum letzten Review: [SECURITY.md](SECURITY.md).
 
 Es gibt noch keine automatisierten Tests. Für einen Handtest liegen Testbilder aus
 [`contentauth/c2pa-rs`](https://github.com/contentauth/c2pa-rs/tree/main/sdk/tests/fixtures)
-(MIT) in `Tests/Fixtures/c2pa-rs/`. Dieses Skript spielt sie über die FAL-API nach
+(MIT) in `Tests/Fixtures/c2pa-rs/`, ein ChatGPT-Bild in `Tests/Fixtures/ai/`. Dieses Skript
+spielt alle über die FAL-API nach
 `fileadmin/c2pa-test/` ein. Dabei laufen dieselben Events wie bei einem Upload:
 
 ```bash
@@ -150,7 +151,7 @@ und neu geprüft. Erwartete Ergebnisse:
 | `E-sig-CA.jpg` | invalid (`claimSignature.mismatch`) | 0 |
 | `exp-test1.png` | invalid (Zertifikat abgelaufen) | 0 |
 | `no_manifest.jpg` | none | 0 |
-| ein Bild aus ChatGPT | valid | 1 |
+| `chatgpt-gpt-image.png` | valid | 1 (`trainedAlgorithmicMedia`) |
 
 Zum Gegencheck die CLI des Verifiers: `vendor/bin/c2pa-verify <datei>`.
 

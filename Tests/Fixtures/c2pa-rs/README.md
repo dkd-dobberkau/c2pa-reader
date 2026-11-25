@@ -12,8 +12,7 @@ Lizenz MIT (siehe `LICENSE-MIT`) oder Apache-2.0, nach Wahl.
 | `libpng-test.png` | none | 0 | kein Manifest |
 | `no_manifest.jpg` | none | 0 | kein Manifest |
 
-Ein echtes KI-Bild (Status `valid`, KI `1`) ist nicht dabei, weil die Rechte daran
-unklar sind. Dafür ein Bild aus ChatGPT oder Adobe Firefly hochladen.
+Ein echtes KI-Bild (Status `valid`, KI `1`) liegt in `../ai/`.
 
 Einspielen in eine lokale Instanz: `Build/Scripts/import-fixtures.php`, siehe README im
 Wurzelverzeichnis.

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Spielt die Testbilder aus Tests/Fixtures/c2pa-rs über die FAL-API in fileadmin/c2pa-test/ ein.
+ * Spielt die Testbilder aus Tests/Fixtures/* über die FAL-API in fileadmin/c2pa-test/ ein.
  * Über die FAL-API, damit AfterFileAddedEvent feuert wie bei einem Backend-Upload.
  * Vorhandene Dateien werden ersetzt (AfterFileReplacedEvent), also neu geprüft.
  *
@@ -40,7 +40,7 @@ $storage = GeneralUtility::makeInstance(StorageRepository::class)->getDefaultSto
 $folderName = 'c2pa-test';
 $folder = $storage->hasFolder($folderName) ? $storage->getFolder($folderName) : $storage->createFolder($folderName);
 
-foreach (glob(dirname(__DIR__, 2) . '/Tests/Fixtures/c2pa-rs/*.{jpg,png}', GLOB_BRACE) as $path) {
+foreach (glob(dirname(__DIR__, 2) . '/Tests/Fixtures/*/*.{jpg,png}', GLOB_BRACE) as $path) {
     // addFile() verschiebt die Quelle, daher eine temporäre Kopie übergeben.
     $tmp = tempnam(sys_get_temp_dir(), 'c2pa');
     copy($path, $tmp);
