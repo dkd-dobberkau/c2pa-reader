@@ -1,0 +1,4 @@
+# Bild-Partial von fluid_styled_content mit KI-Hinweis in der figcaption.
+lib.contentElement.partialRootPaths.1700 = EXT:c2pa_reader/Resources/Private/FluidStyledContent/Partials/
+
+page.includeCSS.c2paReaderBadge = EXT:c2pa_reader/Resources/Public/Css/badge.css

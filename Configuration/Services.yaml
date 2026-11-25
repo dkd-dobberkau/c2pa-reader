@@ -6,3 +6,9 @@ services:
 
   Dkd\C2paReader\:
     resource: '../Classes/*'
+
+  # ViewHelper mit Konstruktor-Injection müssen öffentlich sein, damit Fluid sie aus dem Container holt.
+  Dkd\C2paReader\ViewHelpers\:
+    resource: '../Classes/ViewHelpers/*'
+    public: true
+    shared: false

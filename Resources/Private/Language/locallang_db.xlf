@@ -10,6 +10,8 @@
             <trans-unit id="status.unreadable"><source>Not checked (format unsupported or read error)</source></trans-unit>
             <trans-unit id="ai"><source>Marked as AI-generated (claim of the manifest)</source></trans-unit>
             <trans-unit id="agents"><source>Software agents named in the manifest</source></trans-unit>
+            <trans-unit id="ai_manual"><source>AI-generated (set by editors)</source></trans-unit>
+            <trans-unit id="ai_manual.description"><source>Set this when the file is AI-generated but carries no Content Credentials saying so. The frontend shows the AI notice for either source.</source></trans-unit>
             <trans-unit id="checked"><source>Last checked</source></trans-unit>
         </body>
     </file>

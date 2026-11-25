@@ -40,6 +40,14 @@ selbst wurde nicht geprüft.
 - **Speicher:** Dateien über 50 MB werden nicht geprüft. Der Verifier liest als Stream
   und begrenzt CBOR-Strukturen (`CborBudget`).
 
+### Nachtrag: KI-Hinweis im Frontend
+
+- Agents aus dem Manifest werden im Badge escaped. Lokal geprüft mit
+  `<script>alert(1)</script>" onmouseover=x` als Agent: Ausgabe als `&lt;script&gt;…&quot;`.
+- `tx_c2pareader_ai_manual` ist absichtlich bearbeitbar und nicht vom DataHandler-Hook
+  gesperrt. Das Frontend weist es getrennt aus („laut Redaktion"); eine signierte Angabe
+  lässt sich damit weder vortäuschen noch überschreiben.
+
 ### Bekannte Grenzen (kein Fehler im Code)
 
 - `valid` bedeutet nicht vertrauenswürdig. Ohne Trust List ist ein selbst signiertes

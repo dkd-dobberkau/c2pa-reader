@@ -1,0 +1,4 @@
+name: dkd/c2pa-reader-badge
+label: 'C2PA Reader: KI-Hinweis an Bildern (fluid_styled_content)'
+dependencies:
+  - typo3/fluid-styled-content

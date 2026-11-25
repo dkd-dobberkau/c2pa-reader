@@ -1,0 +1,15 @@
+/* KI-Hinweis von EXT:c2pa_reader. Bewusst schlicht; im Sitepackage überschreiben. */
+.c2pa-badge {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.25em;
+    margin-top: 0.25em;
+    padding: 0.1em 0.5em;
+    border: 1px solid currentColor;
+    border-radius: 0.25em;
+    font-size: 0.875em;
+    line-height: 1.4;
+}
+.c2pa-badge__label {
+    font-weight: 600;
+}

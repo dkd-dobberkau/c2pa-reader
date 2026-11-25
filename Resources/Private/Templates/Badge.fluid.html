@@ -1,0 +1,17 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
+<f:variable name="lll" value="LLL:EXT:c2pa_reader/Resources/Private/Language/locallang.xlf:" />
+<span class="c2pa-badge c2pa-badge--{disclosure.source}" id="{id}">
+    <span class="c2pa-badge__label"><f:translate key="{lll}badge.ai" /></span>
+    <f:if condition="{disclosure.fromCredentials}">
+        <f:then>
+            <span class="c2pa-badge__source"><f:translate key="{lll}badge.source.credentials" /></span>
+            <f:if condition="{disclosure.agents}">
+                <span class="c2pa-badge__agents">({disclosure.agents})</span>
+            </f:if>
+        </f:then>
+        <f:else>
+            <span class="c2pa-badge__source"><f:translate key="{lll}badge.source.editor" /></span>
+        </f:else>
+    </f:if>
+</span>
+</html>

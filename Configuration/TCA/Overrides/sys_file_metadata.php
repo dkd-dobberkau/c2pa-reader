@@ -37,6 +37,15 @@ ExtensionManagementUtility::addTCAcolumns('sys_file_metadata', [
             'readOnly' => true,
         ],
     ],
+    // Von der Redaktion gepflegt, z. B. für KI-Bilder ohne (oder mit entferntem) Manifest.
+    'tx_c2pareader_ai_manual' => [
+        'label' => $lll . 'ai_manual',
+        'description' => $lll . 'ai_manual.description',
+        'config' => [
+            'type' => 'check',
+            'renderType' => 'checkboxToggle',
+        ],
+    ],
     'tx_c2pareader_checked' => [
         'label' => $lll . 'checked',
         'config' => [
@@ -48,5 +57,5 @@ ExtensionManagementUtility::addTCAcolumns('sys_file_metadata', [
 
 ExtensionManagementUtility::addToAllTCAtypes(
     'sys_file_metadata',
-    '--div--;' . $lll . 'tab, tx_c2pareader_status, tx_c2pareader_ai, tx_c2pareader_agents, tx_c2pareader_checked',
+    '--div--;' . $lll . 'tab, tx_c2pareader_status, tx_c2pareader_ai, tx_c2pareader_agents, tx_c2pareader_checked, tx_c2pareader_ai_manual',
 );

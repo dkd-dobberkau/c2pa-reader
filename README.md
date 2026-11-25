@@ -61,6 +61,56 @@ die nicht gelesen werden können, werden mit Warnung übersprungen.
 
 Dateiliste → Datei bearbeiten (Metadaten) → Tab **Content Credentials (C2PA)**.
 
+Dort gibt es auch den Schalter **„AI-generated (set by editors)"**. Den setzt die Redaktion
+bei KI-Bildern, die keine Content Credentials (mehr) haben, etwa weil ein Dienst die
+Metadaten entfernt hat.
+
+### Im Frontend: KI-Hinweis
+
+Ein Bild bekommt einen Hinweis, wenn **eine** der beiden Angaben zutrifft:
+
+1. das Manifest erklärt es als KI-generiert, bei gültiger Signatur (`tx_c2pareader_ai`):
+   „KI-generiert – laut Content Credentials (OpenAI Media Service API, ChatGPT gpt-image)";
+2. die Redaktion hat den Schalter gesetzt (`tx_c2pareader_ai_manual`):
+   „KI-generiert – laut Redaktion".
+
+Die Angabe aus dem Manifest hat Vorrang, weil sie signiert ist. Texte gibt es auf Englisch
+und Deutsch (`Resources/Private/Language/locallang.xlf`, `de.locallang.xlf`).
+
+**Variante A: automatisch an allen Bildern von fluid_styled_content.** Das Site Set
+`dkd/c2pa-reader-badge` in der Site-Konfiguration ergänzen:
+
+```yaml
+dependencies:
+  - typo3/fluid-styled-content
+  - dkd/c2pa-reader-badge
+```
+
+Das Set überschreibt das Partial `Media/Type/Image` (Pfad-Priorität 1700) und setzt den
+Hinweis in die `figcaption`, so gehört er semantisch zum Bild. Es bindet außerdem ein
+schlichtes Stylesheet ein (`Resources/Public/Css/badge.css`, Klassen `c2pa-badge*`).
+Überschreibt das Sitepackage dasselbe Partial mit höherer Priorität, dort
+`<c2pa:badge file="{file}" />` selbst einsetzen.
+
+**Variante B: im eigenen Template.** Der ViewHelper ist global als `c2pa` registriert:
+
+```html
+<c2pa:badge file="{file}" />
+<c2pa:badge file="{file}" id="ai-note-{file.uid}" />
+<c2pa:badge file="{file}" template="EXT:my_site/Resources/Private/Templates/C2paBadge.fluid.html" />
+```
+
+`file` ist ein `File` oder eine `FileReference`. Ohne KI-Angabe gibt der ViewHelper nichts
+aus. Der Hinweis bekommt die id `c2pa-badge-<uid>`, die sich z. B. für `aria-describedby`
+am `<img>` nutzen lässt. Ein eigenes Template erhält `{disclosure}` (`source`:
+`credentials` oder `editor`, `agents`, `fromCredentials`) und `{id}`.
+
+Wer nur die Werte braucht: Die Metadaten stehen in jedem Template auch direkt zur Verfügung,
+z. B. `{file.properties.tx_c2pareader_ai}`.
+
+Der Hinweis ersetzt keine rechtliche Prüfung, ob und wie KI-Inhalte gekennzeichnet werden
+müssen (z. B. Art. 50 AI Act).
+
 ## Gespeicherte Felder (`sys_file_metadata`)
 
 | Feld | Werte | Bedeutung |
@@ -69,6 +119,7 @@ Dateiliste → Datei bearbeiten (Metadaten) → Tab **Content Credentials (C2PA)
 | `tx_c2pareader_ai` | 0 / 1 | 1 = das Manifest erklärt die Datei als KI-generiert. Nur bei gültiger Signatur. |
 | `tx_c2pareader_agents` | Text, max. 255 Zeichen | erzeugende Software (`claim_generator_info`) und `softwareAgent` der Actions |
 | `tx_c2pareader_checked` | Unix-Zeitstempel | letzte Prüfung |
+| `tx_c2pareader_ai_manual` | 0 / 1 | 1 = die Redaktion kennzeichnet die Datei als KI-generiert. Als einziges Feld bearbeitbar. |
 
 ### Status
 
@@ -104,14 +155,16 @@ Beispiel bei Bildern aus ChatGPT oder Adobe Firefly der Fall. `algorithmicMedia`
 
 ## Sicherheit
 
-- Die vier Felder schreibt nur die Extension selbst (über `MetaDataRepository`). Ein
+- Die vier Prüf-Felder schreibt nur die Extension selbst (über `MetaDataRepository`). Ein
   DataHandler-Hook (`Classes/Hooks/ProtectCredentialFields.php`) entfernt sie aus jedem
   eingehenden Datensatz. So kann kein Redakteur per Formular, Import oder Workspace den
   Status fälschen. `readOnly` im TCA allein reicht dafür nicht, denn es wirkt nur in der
-  Anzeige.
+  Anzeige. Das manuelle Feld `tx_c2pareader_ai_manual` ist davon ausgenommen; im
+  Frontend steht dann „laut Redaktion", nicht „laut Content Credentials".
 - Alle Werte aus dem Manifest (Agents, Texte) sind **Angaben aus der Datei** und damit
-  nicht vertrauenswürdig. Das Backend escaped sie. Ein künftiges Frontend-Badge muss sie
-  ebenfalls escapen (Fluid tut das standardmäßig, kein `f:format.raw`).
+  nicht vertrauenswürdig. Backend und Badge-Template escapen sie. Ein eigenes Badge-Template
+  muss das ebenso tun: kein `f:format.raw` auf `{disclosure.agents}`. (Das Partial des Site
+  Sets nutzt `f:format.raw` nur für die fertige, bereits escapte Ausgabe des ViewHelpers.)
 - Der Verifier lädt nichts nach. Ein per URL deklariertes Remote-Manifest wird nicht
   abgerufen, OCSP-Abfragen sind aus.
 
@@ -124,7 +177,10 @@ Details zum letzten Review: [SECURITY.md](SECURITY.md).
 | `Classes/Service/CredentialReader.php` | ruft den Verifier auf und übersetzt den Report in die vier Felder |
 | `Classes/EventListener/ReadCredentialsOnUpload.php` | prüft nach Upload und Ersetzen |
 | `Classes/Command/ScanCommand.php` | `c2pa:scan` für den Bestand |
-| `Classes/Hooks/ProtectCredentialFields.php` | sperrt die Felder für DataHandler |
+| `Classes/Hooks/ProtectCredentialFields.php` | sperrt die Prüf-Felder für DataHandler |
+| `Classes/Service/AiDisclosureResolver.php` | entscheidet, ob und mit welcher Quelle ein KI-Hinweis erscheint |
+| `Classes/ViewHelpers/BadgeViewHelper.php` | `<c2pa:badge>`, rendert `Resources/Private/Templates/Badge.fluid.html` |
+| `Configuration/Sets/Badge/` | Site Set `dkd/c2pa-reader-badge`: Hinweis an fluid_styled_content-Bildern |
 | `Configuration/TCA/Overrides/sys_file_metadata.php` | Felder und Tab im Backend |
 | `ext_tables.sql` | Datenbankfelder |
 
@@ -133,8 +189,8 @@ Details zum letzten Review: [SECURITY.md](SECURITY.md).
 Es gibt noch keine automatisierten Tests. Für einen Handtest liegen Testbilder aus
 [`contentauth/c2pa-rs`](https://github.com/contentauth/c2pa-rs/tree/main/sdk/tests/fixtures)
 (MIT) in `Tests/Fixtures/c2pa-rs/`, ein ChatGPT-Bild in `Tests/Fixtures/ai/`. Dieses Skript
-spielt alle über die FAL-API nach
-`fileadmin/c2pa-test/` ein. Dabei laufen dieselben Events wie bei einem Upload:
+spielt alle über die FAL-API nach `fileadmin/c2pa-test/` ein. Dabei laufen dieselben Events
+wie bei einem Upload:
 
 ```bash
 ddev exec php /var/www/packages/c2pa_reader/Build/Scripts/import-fixtures.php
@@ -158,9 +214,8 @@ Zum Gegencheck die CLI des Verifiers: `vendor/bin/c2pa-verify <datei>`.
 ## Nächste Schritte
 
 1. Trust-List-Prüfung (`TrustSettings`) und Status `trusted` als eigener Wert.
-2. Frontend-Badge (Fluid-ViewHelper) aus den gespeicherten Feldern.
-3. Weitere Formate (WebP, MP4) und ein Warnhinweis im Backend bei `invalid`.
-4. Functional Tests für Reader, Listener und DataHandler-Hook.
+2. Weitere Formate (WebP, MP4) und ein Warnhinweis im Backend bei `invalid`.
+3. Functional Tests für Reader, Listener, DataHandler-Hook und Badge.
 
 ## Lizenz
 

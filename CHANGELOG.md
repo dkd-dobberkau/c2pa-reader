@@ -15,6 +15,11 @@ Alle wichtigen Änderungen an dieser Extension. Format nach
 - Testbilder aus `contentauth/c2pa-rs` in `Tests/Fixtures/c2pa-rs/`, ein ChatGPT-Bild
   in `Tests/Fixtures/ai/` sowie `Build/Scripts/import-fixtures.php`
   zum Einspielen in eine lokale Instanz.
+- KI-Hinweis im Frontend: ViewHelper `<c2pa:badge>` mit überschreibbarem Template und
+  Site Set `dkd/c2pa-reader-badge`, das den Hinweis in die `figcaption` der Bilder von
+  fluid_styled_content setzt (Texte en/de, schlichtes CSS).
+- Feld `tx_c2pareader_ai_manual`: KI-Kennzeichnung durch die Redaktion, z. B. für Bilder
+  ohne Content Credentials. Im Frontend als „laut Redaktion" ausgewiesen.
 
 ### Fixed
 - `CredentialReader` nutzt die echte API von `provemark/c2pa-verifier`
