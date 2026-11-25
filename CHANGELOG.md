@@ -6,6 +6,8 @@ All notable changes to this extension. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-25
+
 ### Added
 - Trust lists: `c2pa:trust:update` downloads the signer and TSA lists of the C2PA
   conformance programme (optionally DigiCert Trusted Root G4 with `--with-digicert`); files
@@ -50,6 +52,7 @@ First release (proof of concept).
   run in GitHub Actions with PHP 8.3 and 8.4.
 - Security review before the release; see SECURITY.md.
 
-[Unreleased]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.1.1...HEAD
+[Unreleased]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.1.1...0.2.0
 [0.1.1]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/dkd-dobberkau/c2pa-reader/releases/tag/0.1.0
