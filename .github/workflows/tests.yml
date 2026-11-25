@@ -24,7 +24,7 @@ jobs:
         # composer.json verlangt ^8.3; lokal wird mit 8.4 entwickelt.
         php: ['8.3', '8.4']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -37,7 +37,7 @@ jobs:
         run: composer validate --no-check-lock
 
       - name: Composer cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/composer
           key: composer-${{ matrix.php }}-${{ hashFiles('composer.json') }}
