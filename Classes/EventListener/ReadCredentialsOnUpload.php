@@ -8,6 +8,8 @@ use Dkd\C2paReader\Service\CredentialReader;
 use TYPO3\CMS\Core\Attribute\AsEventListener;
 use TYPO3\CMS\Core\Resource\Event\AfterFileAddedEvent;
 use TYPO3\CMS\Core\Resource\Event\AfterFileReplacedEvent;
+use TYPO3\CMS\Core\Resource\File;
+use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 
 /**
@@ -33,9 +35,10 @@ final class ReadCredentialsOnUpload
         $this->process($event->getFile());
     }
 
-    private function process(\TYPO3\CMS\Core\Resource\FileInterface $file): void
+    private function process(FileInterface $file): void
     {
-        if (!$this->reader->supports($file)) {
+        // Metadaten gibt es nur für indizierte Dateien (File), nicht für ProcessedFile o. Ä.
+        if (!$file instanceof File || !$this->reader->supports($file)) {
             return;
         }
         $this->metaDataRepository->update($file->getUid(), $this->reader->read($file));

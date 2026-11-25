@@ -58,7 +58,7 @@ final class BadgeViewHelper extends AbstractViewHelper
         $view->assignMultiple([
             'disclosure' => $disclosure,
             // Standard: c2pa-badge-<uid>; bei einer FileReference ist das die uid der Referenz.
-            'id' => (string)$this->arguments['id'] ?: 'c2pa-badge-' . $this->arguments['file']->getUid(),
+            'id' => (string)$this->arguments['id'] ?: 'c2pa-badge-' . (int)$this->arguments['file']->getProperty('uid'),
         ]);
 
         return $view->render();

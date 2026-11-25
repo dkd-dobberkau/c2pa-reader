@@ -186,9 +186,33 @@ Details zum letzten Review: [SECURITY.md](SECURITY.md).
 
 ## Testen
 
-Es gibt noch keine automatisierten Tests. Für einen Handtest liegen Testbilder aus
+### Automatisierte Tests
+
+Unit- und Functional-Tests mit `typo3/testing-framework` (PHPUnit 12). Die Functional-Tests
+nutzen SQLite und brauchen keinen Datenbankserver. Voraussetzung: PHP 8.3+ mit `pdo_sqlite`,
+`intl` und `gd`.
+
+```bash
+composer install          # installiert TYPO3 14 und die Testwerkzeuge nach .Build/
+composer test             # alle Tests
+composer test:unit
+composer test:functional
+```
+
+| Test | prüft |
+|---|---|
+| `Tests/Unit/Service/CredentialReaderTest.php` | alle Testbilder gegen den echten Verifier; manipuliertes KI-Bild → `invalid` und `ai=0`; nicht unterstützter Typ, Größenlimit, Lesefehler |
+| `Tests/Unit/Service/AiDisclosureResolverTest.php` | Quelle des KI-Hinweises, Vorrang der Content Credentials |
+| `Tests/Unit/Hooks/ProtectCredentialFieldsTest.php` | welche Felder der Hook entfernt |
+| `Tests/Functional/Hooks/ProtectCredentialFieldsTest.php` | echter DataHandler als Admin und als Redakteur: Prüf-Felder bleiben, `title` und manuelles KI-Feld ändern sich |
+| `Tests/Functional/EventListener/ReadCredentialsOnUploadTest.php` | Hinzufügen und Ersetzen über die FAL-API bis in `sys_file_metadata` |
+| `Tests/Functional/ViewHelpers/BadgeViewHelperTest.php` | Ausgabe von `<c2pa:badge>`, id, Texte, Escaping von Manifest-Angaben |
+
+### Handtest in einer Instanz
+
+Testbilder aus
 [`contentauth/c2pa-rs`](https://github.com/contentauth/c2pa-rs/tree/main/sdk/tests/fixtures)
-(MIT) in `Tests/Fixtures/c2pa-rs/`, ein ChatGPT-Bild in `Tests/Fixtures/ai/`. Dieses Skript
+(MIT) liegen in `Tests/Fixtures/c2pa-rs/`, ein ChatGPT-Bild in `Tests/Fixtures/ai/`. Dieses Skript
 spielt alle über die FAL-API nach `fileadmin/c2pa-test/` ein. Dabei laufen dieselben Events
 wie bei einem Upload:
 
@@ -215,7 +239,7 @@ Zum Gegencheck die CLI des Verifiers: `vendor/bin/c2pa-verify <datei>`.
 
 1. Trust-List-Prüfung (`TrustSettings`) und Status `trusted` als eigener Wert.
 2. Weitere Formate (WebP, MP4) und ein Warnhinweis im Backend bei `invalid`.
-3. Functional Tests für Reader, Listener, DataHandler-Hook und Badge.
+3. CI (GitHub Actions), die `composer test` bei jedem Push ausführt.
 
 ## Lizenz
 

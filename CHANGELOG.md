@@ -20,8 +20,13 @@ Alle wichtigen Änderungen an dieser Extension. Format nach
   fluid_styled_content setzt (Texte en/de, schlichtes CSS).
 - Feld `tx_c2pareader_ai_manual`: KI-Kennzeichnung durch die Redaktion, z. B. für Bilder
   ohne Content Credentials. Im Frontend als „laut Redaktion" ausgewiesen.
+- Unit- und Functional-Tests (typo3/testing-framework, PHPUnit 12, SQLite):
+  `composer test`.
 
 ### Fixed
+- `CredentialReader`, `BadgeViewHelper` und der Upload-Listener riefen `getUid()` auf
+  `FileInterface` auf, das diese Methode nicht hat. Jetzt `getProperty('uid')` bzw. Prüfung
+  auf `File`; der Listener ignoriert Dateien ohne Metadaten.
 - `CredentialReader` nutzt die echte API von `provemark/c2pa-verifier`
   (vorher Klassen des Schwesterpakets `provemark/content-credentials`).
 - `c2pa:scan`: `ConnectionPool::getQueryBuilderForTable()` statt einer nicht

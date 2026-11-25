@@ -95,8 +95,10 @@ final class CredentialReader
             $result['tx_c2pareader_ai'] = ($valid && $this->isAiGenerated($activeManifest)) ? 1 : 0;
             $result['tx_c2pareader_agents'] = mb_substr(implode(', ', $this->softwareAgents($activeManifest)), 0, 255);
         } catch (\Throwable $e) {
-            $this->logger->warning('C2PA read failed for file {uid}: {message}', [
-                'uid' => $file->getUid(),
+            $this->logger->warning('C2PA read failed for file {uid} ({identifier}): {message}', [
+                // FileInterface hat kein getUid(); File und FileReference liefern die uid als Property.
+                'uid' => $file->hasProperty('uid') ? $file->getProperty('uid') : null,
+                'identifier' => $file->getIdentifier(),
                 'message' => $e->getMessage(),
                 'exception' => $e,
             ]);
