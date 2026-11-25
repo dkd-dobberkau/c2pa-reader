@@ -1,0 +1,5 @@
+vendor/
+.Build/
+.idea/
+.DS_Store
+.playwright-mcp/

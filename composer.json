@@ -1,0 +1,21 @@
+{
+    "name": "dkd/c2pa-reader",
+    "type": "typo3-cms-extension",
+    "description": "Liest und prüft C2PA Content Credentials beim Upload in die TYPO3-Dateiliste (FAL) und speichert das Ergebnis in sys_file_metadata.",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": "^8.3",
+        "typo3/cms-core": "^14.0",
+        "provemark/c2pa-verifier": "^0.11"
+    },
+    "autoload": {
+        "psr-4": {
+            "Dkd\\C2paReader\\": "Classes/"
+        }
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "c2pa_reader"
+        }
+    }
+}

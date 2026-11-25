@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" original="locallang_db.xlf" product-name="c2pa_reader">
+        <body>
+            <trans-unit id="tab"><source>Content Credentials (C2PA)</source></trans-unit>
+            <trans-unit id="status"><source>Status</source></trans-unit>
+            <trans-unit id="status.none"><source>No Content Credentials</source></trans-unit>
+            <trans-unit id="status.valid"><source>Signature valid (issuer not checked against a trust list)</source></trans-unit>
+            <trans-unit id="status.invalid"><source>Signature invalid or manifest damaged</source></trans-unit>
+            <trans-unit id="status.unreadable"><source>Not checked (format unsupported or read error)</source></trans-unit>
+            <trans-unit id="ai"><source>Marked as AI-generated (claim of the manifest)</source></trans-unit>
+            <trans-unit id="agents"><source>Software agents named in the manifest</source></trans-unit>
+            <trans-unit id="checked"><source>Last checked</source></trans-unit>
+        </body>
+    </file>
+</xliff>
