@@ -76,8 +76,9 @@ vendor/bin/typo3 c2pa:scan --force                  # check existing files again
   [c2pa-org/conformance-public](https://github.com/c2pa-org/conformance-public/tree/main/trust-list)
   (CC BY 4.0) into the trust directory, `var/c2pa/` by default. `trust-lists.json` there
   records the date, the URLs and the SHA-256 of each file.
-- The lists change. Run the command again from time to time, for example in a scheduler
-  task or a cron job, followed by `c2pa:scan --force`.
+- The lists change. Keep them current with the Scheduler (below) or a cron job running
+  `vendor/bin/typo3 c2pa:trust:update --rescan`; `--rescan` checks all files again after a
+  successful update.
 - `--with-digicert` also anchors **DigiCert Trusted Root G4** for timestamps; Adobe Firefly
   and Microsoft use it, but it is not on the C2PA list. Without it, such files are `invalid`
   once their signing certificate has expired. The command checks the root's published
@@ -89,6 +90,13 @@ vendor/bin/typo3 c2pa:scan --force                  # check existing files again
   reads) into the trust directory. It takes precedence over the downloaded lists.
 - A broken or unreadable trust file is logged and ignored; files are then checked without
   trust, never rejected.
+
+### Keeping the trust lists current with the Scheduler
+
+With `typo3/cms-scheduler` installed: Scheduler → add task → **Execute console commands** →
+command `c2pa:trust:update`, enable the option `--rescan`, and run it, for example, once a
+week. If a download fails, the task fails, the previous lists stay in place and no file is
+checked again.
 
 ### Extension settings
 
@@ -102,6 +110,19 @@ Admin Tools → Settings → Extension Configuration → `c2pa_reader`:
 ### In the backend
 
 File list → edit file (metadata) → tab **Content Credentials (C2PA)**.
+
+When the Content Credentials are **invalid**, the editor is told right away and in words:
+
+- after an upload or a replace in the backend, a warning notification names the file and the
+  reason, for example *"E-sig-CA.jpg: The signature does not match the manifest, or the
+  manifest was altered."* The upload itself has succeeded;
+- in the metadata form, a red box above the status explains the reason and advises not to
+  rely on the manifest. The field *Problems found* lists the C2PA status codes.
+
+The reasons fall into four groups: the file was changed after signing; the signature does
+not match or the manifest was altered; the signing certificate is not valid (expired,
+revoked, unsuitable) and no trusted timestamp vouches for the signing time; the manifest is
+damaged or incomplete. Labels exist in English and German.
 
 The tab also has the switch **"AI-generated (set by editors)"**. Editors set it for AI
 images that carry no Content Credentials, for example because a service stripped the
@@ -164,6 +185,7 @@ labelled (for example under Art. 50 of the EU AI Act).
 | `tx_c2pareader_ai` | 0 / 1 | 1 = the manifest declares the file AI-generated. Only set when the signature is valid. |
 | `tx_c2pareader_agents` | text, max. 255 characters | generating software (`claim_generator_info`) and the `softwareAgent` of the actions |
 | `tx_c2pareader_checked` | Unix timestamp | last check |
+| `tx_c2pareader_issues` | C2PA status codes, comma-separated | why the file is `invalid`, e.g. `claimSignature.mismatch`; empty otherwise. `signingCredential.untrusted` alone is not listed: it never makes a file invalid |
 | `tx_c2pareader_ai_manual` | 0 / 1 | 1 = an editor labels the file as AI-generated. The only editable field. |
 
 ### Status
@@ -203,7 +225,7 @@ trained model) does not count.
 
 ## Security
 
-- Only the extension itself writes the four check fields (through `MetaDataRepository`). A
+- Only the extension itself writes the five check fields (through `MetaDataRepository`). A
   DataHandler hook (`Classes/Hooks/ProtectCredentialFields.php`) removes them from every
   incoming record, so no editor can forge the status through a form, an import or a
   workspace. `readOnly` in TCA is not enough on its own, because it only affects the
@@ -223,8 +245,11 @@ Details of the last review: [SECURITY.md](SECURITY.md).
 
 | File | Purpose |
 |---|---|
-| `Classes/Service/CredentialReader.php` | calls the verifier and maps the report to the four fields |
-| `Classes/EventListener/ReadCredentialsOnUpload.php` | checks after upload and replace |
+| `Classes/Service/CredentialReader.php` | calls the verifier and maps the report to the five check fields |
+| `Classes/Service/CredentialScanner.php` | checks existing files; used by `c2pa:scan` and `c2pa:trust:update --rescan` |
+| `Classes/Service/IssueCatalog.php` | turns the status codes of an invalid file into sentences |
+| `Classes/Form/CredentialIssuesInformation.php` | the red box in the metadata form |
+| `Classes/EventListener/ReadCredentialsOnUpload.php` | checks after upload and replace; warns the backend user about invalid files |
 | `Classes/Command/ScanCommand.php` | `c2pa:scan` for existing files |
 | `Classes/Command/TrustUpdateCommand.php`, `Classes/Trust/TrustListUpdater.php` | `c2pa:trust:update`: downloads and validates the trust lists |
 | `Classes/Trust/TrustSettingsProvider.php` | loads the trust settings for the verifier |
@@ -259,10 +284,15 @@ on pull requests, with PHP 8.3 and 8.4.
 | `Tests/Unit/Service/CredentialReaderTest.php` | all test files against the real verifier: every format valid and AI, one changed byte → `invalid`; with the trust list snapshot the ChatGPT image is `trusted`; unsupported type, size limit, read error |
 | `Tests/Unit/Trust/TrustSettingsProviderTest.php` | loading the lists, precedence of `trust.settings.json`, broken files |
 | `Tests/Unit/Trust/TrustListUpdaterTest.php` | download (with a fake HTTP client), metadata, DigiCert fingerprint, nothing written when validation fails |
+| `Tests/Unit/Service/IssueCatalogTest.php` | grouping and wording of the status codes |
 | `Tests/Unit/Service/AiDisclosureResolverTest.php` | source of the AI notice, precedence of Content Credentials |
 | `Tests/Unit/Hooks/ProtectCredentialFieldsTest.php` | which fields the hook removes |
 | `Tests/Functional/Hooks/ProtectCredentialFieldsTest.php` | real DataHandler as admin and as editor: check fields stay, `title` and the manual AI field change |
 | `Tests/Functional/EventListener/ReadCredentialsOnUploadTest.php` | adding (every format) and replacing through the FAL API, through to `sys_file_metadata` |
+| `Tests/Functional/EventListener/InvalidUploadNoticeTest.php` | warning after a backend upload of an invalid file, none for valid files or outside the backend |
+| `Tests/Functional/Form/CredentialIssuesInformationTest.php` | the red box in the form, English and German |
+| `Tests/Functional/Command/TrustUpdateCommandTest.php` | `c2pa:trust:update` with and without `--rescan` |
+| `Tests/Functional/Command/SchedulableCommandsTest.php` | both commands are offered by the Scheduler |
 | `Tests/Functional/ViewHelpers/BadgeViewHelperTest.php` | output of `<c2pa:badge>`, id, labels, trusted signer, escaping of manifest values |
 
 ### Test files
@@ -319,9 +349,8 @@ cache.
 
 ## Next steps
 
-1. A warning in the backend for `invalid`.
-2. A scheduler task that refreshes the trust lists and checks the files again.
-3. Registration on Packagist.
+1. Registration on Packagist.
+2. A column or icon for the C2PA status in the file list.
 
 ## License
 

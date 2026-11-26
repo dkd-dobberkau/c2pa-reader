@@ -6,6 +6,7 @@ namespace Dkd\C2paReader\Service;
 
 use Dkd\C2paReader\Configuration\ExtensionSettings;
 use Dkd\C2paReader\Trust\TrustSettingsProvider;
+use Provemark\C2paVerifier\Report\StatusCode;
 use Provemark\C2paVerifier\Report\ValidationState;
 use Provemark\C2paVerifier\Verifier\VerificationReport;
 use Provemark\C2paVerifier\Verifier\Verifier;
@@ -35,6 +36,7 @@ final class CredentialReader
         'tx_c2pareader_ai',
         'tx_c2pareader_agents',
         'tx_c2pareader_checked',
+        'tx_c2pareader_issues',
     ];
 
     /**
@@ -68,7 +70,7 @@ final class CredentialReader
     }
 
     /**
-     * @return array{tx_c2pareader_status: string, tx_c2pareader_ai: int, tx_c2pareader_agents: string, tx_c2pareader_checked: int}
+     * @return array{tx_c2pareader_status: string, tx_c2pareader_ai: int, tx_c2pareader_agents: string, tx_c2pareader_checked: int, tx_c2pareader_issues: string}
      */
     public function read(FileInterface $file): array
     {
@@ -77,6 +79,7 @@ final class CredentialReader
             'tx_c2pareader_ai' => 0,
             'tx_c2pareader_agents' => '',
             'tx_c2pareader_checked' => time(),
+            'tx_c2pareader_issues' => '',
         ];
 
         if (!$this->supports($file)) {
@@ -108,6 +111,9 @@ final class CredentialReader
             // It is only taken over when the signature is valid.
             $result['tx_c2pareader_ai'] = ($valid && $this->isAiGenerated($activeManifest)) ? 1 : 0;
             $result['tx_c2pareader_agents'] = mb_substr(implode(', ', $this->softwareAgents($activeManifest)), 0, 255);
+            if (!$valid) {
+                $result['tx_c2pareader_issues'] = substr(implode(',', $this->failureCodes($report)), 0, 255);
+            }
         } catch (\Throwable $e) {
             $this->logger->warning('C2PA read failed for file {uid} ({identifier}): {message}', [
                 // FileInterface has no getUid(); File and FileReference provide the uid as a property.
@@ -123,6 +129,25 @@ final class CredentialReader
         }
 
         return $result;
+    }
+
+    /**
+     * Why the file is invalid: the C2PA status codes of the failures, without duplicates.
+     * "signingCredential.untrusted" alone never makes a file invalid, so it is left out.
+     * The codes come from the verifier's fixed vocabulary, not from the file.
+     *
+     * @return list<string>
+     */
+    private function failureCodes(VerificationReport $report): array
+    {
+        $codes = [];
+        foreach ($report->result->statuses as $status) {
+            if (!$status->acknowledged && $status->code->isFailure() && $status->code !== StatusCode::SigningCredentialUntrusted) {
+                $codes[$status->code->value] = true;
+            }
+        }
+
+        return array_keys($codes);
     }
 
     /**

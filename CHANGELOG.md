@@ -6,6 +6,22 @@ All notable changes to this extension. The format follows
 
 ## [Unreleased]
 
+### Added
+- Invalid Content Credentials are explained: the new field `tx_c2pareader_issues` stores the
+  C2PA status codes, the metadata form shows the reason in words, and a backend upload or
+  replace of an invalid file shows a warning notification. Labels in English and German.
+- `c2pa:trust:update --rescan` checks all files again after updating the trust lists; meant
+  for the Scheduler task "Execute console commands".
+- German translation of all backend labels.
+
+### Changed
+- `c2pa:scan` and `--rescan` share the new `CredentialScanner` service.
+- Functional tests run with a memory limit of 512 MB.
+
+### Upgrading
+- Run `vendor/bin/typo3 extension:setup -e c2pa_reader` (new database field), then
+  `c2pa:scan --force` to fill it for existing files.
+
 ## [0.2.0] - 2026-11-25
 
 ### Added

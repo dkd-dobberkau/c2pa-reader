@@ -15,6 +15,10 @@ ExtensionManagementUtility::addTCAcolumns('sys_file_metadata', [
             'type' => 'select',
             'renderType' => 'selectSingle',
             'readOnly' => true,
+            // Explains an "invalid" status in words (Classes/Form/CredentialIssuesInformation.php).
+            'fieldInformation' => [
+                'c2paIssues' => ['renderType' => 'c2paCredentialIssues'],
+            ],
             'items' => [
                 ['label' => $lll . 'status.none', 'value' => 'none'],
                 ['label' => $lll . 'status.trusted', 'value' => 'trusted'],
@@ -47,6 +51,14 @@ ExtensionManagementUtility::addTCAcolumns('sys_file_metadata', [
             'renderType' => 'checkboxToggle',
         ],
     ],
+    'tx_c2pareader_issues' => [
+        'label' => $lll . 'issues',
+        'displayCond' => 'FIELD:tx_c2pareader_issues:REQ:true',
+        'config' => [
+            'type' => 'input',
+            'readOnly' => true,
+        ],
+    ],
     'tx_c2pareader_checked' => [
         'label' => $lll . 'checked',
         'config' => [
@@ -58,5 +70,5 @@ ExtensionManagementUtility::addTCAcolumns('sys_file_metadata', [
 
 ExtensionManagementUtility::addToAllTCAtypes(
     'sys_file_metadata',
-    '--div--;' . $lll . 'tab, tx_c2pareader_status, tx_c2pareader_ai, tx_c2pareader_agents, tx_c2pareader_checked, tx_c2pareader_ai_manual',
+    '--div--;' . $lll . 'tab, tx_c2pareader_status, tx_c2pareader_ai, tx_c2pareader_agents, tx_c2pareader_issues, tx_c2pareader_checked, tx_c2pareader_ai_manual',
 );

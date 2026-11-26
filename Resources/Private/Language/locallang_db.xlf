@@ -14,6 +14,14 @@
             <trans-unit id="ai_manual"><source>AI-generated (set by editors)</source></trans-unit>
             <trans-unit id="ai_manual.description"><source>Set this when the file is AI-generated but carries no Content Credentials saying so. The frontend shows the AI notice for either source.</source></trans-unit>
             <trans-unit id="checked"><source>Last checked</source></trans-unit>
+            <trans-unit id="issues"><source>Problems found (C2PA status codes)</source></trans-unit>
+            <trans-unit id="issues.title"><source>The Content Credentials of this file are invalid</source></trans-unit>
+            <trans-unit id="issues.hint"><source>Do not rely on the information in the manifest. Use the original file if you have it.</source></trans-unit>
+            <trans-unit id="issue.changed"><source>The file was changed after it was signed.</source></trans-unit>
+            <trans-unit id="issue.signature"><source>The signature does not match the manifest, or the manifest was altered.</source></trans-unit>
+            <trans-unit id="issue.certificate"><source>The signing certificate is not valid: expired, revoked or unsuitable, and no trusted timestamp vouches for the time of signing.</source></trans-unit>
+            <trans-unit id="issue.damaged"><source>The manifest is damaged or incomplete.</source></trans-unit>
+            <trans-unit id="upload.invalid.title"><source>Content Credentials invalid</source></trans-unit>
         </body>
     </file>
 </xliff>

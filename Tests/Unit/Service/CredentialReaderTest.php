@@ -125,6 +125,34 @@ final class CredentialReaderTest extends UnitTestCase
         self::assertSame(0, $result['tx_c2pareader_ai']);
     }
 
+    /** @return iterable<string, array{string, string, string}> */
+    public static function issueProvider(): iterable
+    {
+        yield 'broken claim signature' => ['c2pa-rs/E-sig-CA.jpg', 'image/jpeg', 'claimSignature.mismatch'];
+        yield 'expired signing certificate' => ['c2pa-rs/exp-test1.png', 'image/png', 'signingCredential.expired,signingCredential.invalid'];
+        yield 'valid file has none' => ['c2pa-rs/C.jpg', 'image/jpeg', ''];
+        yield 'file without manifest has none' => ['c2pa-rs/no_manifest.jpg', 'image/jpeg', ''];
+    }
+
+    #[Test]
+    #[DataProvider('issueProvider')]
+    public function failureCodesExplainAnInvalidStatus(string $fixture, string $mimeType, string $issues): void
+    {
+        $result = $this->reader()->read($this->file(self::FIXTURES . $fixture, $mimeType));
+
+        self::assertSame($issues, $result['tx_c2pareader_issues']);
+    }
+
+    #[Test]
+    public function untrustedSignerIsNotAnIssue(): void
+    {
+        // Without trust lists every signer is untrusted; that alone must not show up as a problem.
+        $result = $this->reader()->read($this->file(self::FIXTURES . 'formats/ai.webp', 'image/webp'));
+
+        self::assertSame(CredentialReader::STATUS_VALID, $result['tx_c2pareader_status']);
+        self::assertSame('', $result['tx_c2pareader_issues']);
+    }
+
     #[Test]
     public function signerOnTheTrustListGivesTrusted(): void
     {

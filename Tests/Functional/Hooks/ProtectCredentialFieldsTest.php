@@ -51,6 +51,7 @@ final class ProtectCredentialFieldsTest extends FunctionalTestCase
             'tx_c2pareader_ai' => 1,
             'tx_c2pareader_agents' => 'Forged Camera 1.0',
             'tx_c2pareader_checked' => 1,
+            'tx_c2pareader_issues' => 'forged',
             'tx_c2pareader_ai_manual' => 1,
         ]]], [], $backendUser);
         $dataHandler->process_datamap();
@@ -65,5 +66,6 @@ final class ProtectCredentialFieldsTest extends FunctionalTestCase
         self::assertSame(0, (int)$row['tx_c2pareader_ai']);
         self::assertSame('make_test_images 0.33.1', $row['tx_c2pareader_agents']);
         self::assertSame(1700000000, (int)$row['tx_c2pareader_checked']);
+        self::assertSame('', $row['tx_c2pareader_issues']);
     }
 }

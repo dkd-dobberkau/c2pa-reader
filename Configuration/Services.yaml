@@ -16,3 +16,9 @@ services:
   # Settings from ext_conf_template.txt, with defaults when the extension is not configured yet.
   Dkd\C2paReader\Configuration\ExtensionSettings:
     factory: ['Dkd\C2paReader\Configuration\ExtensionSettings', 'fromExtensionConfiguration']
+
+  # FormEngine nodes are created with makeInstance(); public so that it uses the container.
+  Dkd\C2paReader\Form\:
+    resource: '../Classes/Form/*'
+    public: true
+    shared: false

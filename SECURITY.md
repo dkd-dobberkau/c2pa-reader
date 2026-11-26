@@ -70,6 +70,16 @@ itself was not reviewed.
   `c2patool` 0.29.0 gives the same verdict, so this is the format's behaviour, not a
   verifier defect; the media data itself is covered.
 
+### Addendum: backend notices (0.3.0)
+
+- The new field `tx_c2pareader_issues` is one of the protected check fields; the DataHandler
+  hook removes it from incoming records like the others (covered by the functional test).
+- The notification and the form box show only fixed sentences chosen by the extension and
+  the file name; status codes come from the verifier's vocabulary, never from the file.
+  The form box escapes its output; backend notifications render their text as text.
+- The notice is a warning, not an error, so a failed check never turns a successful upload
+  into a reported failure.
+
 ### Known limitations (not a code defect)
 
 - `valid` does not mean trusted. Without a trust list, a self-signed manifest is also

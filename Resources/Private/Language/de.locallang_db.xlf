@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" target-language="de" datatype="plaintext" original="locallang_db.xlf" product-name="c2pa_reader">
+        <body>
+            <trans-unit id="tab"><source>Content Credentials (C2PA)</source><target>Content Credentials (C2PA)</target></trans-unit>
+            <trans-unit id="status"><source>Status</source><target>Status</target></trans-unit>
+            <trans-unit id="status.none"><source>No Content Credentials</source><target>Keine Content Credentials</target></trans-unit>
+            <trans-unit id="status.trusted"><source>Signature valid, signer on the trust list</source><target>Signatur gültig, Aussteller auf der Trust List</target></trans-unit>
+            <trans-unit id="status.valid"><source>Signature valid, signer unknown (not on the trust list, or no trust list installed)</source><target>Signatur gültig, Aussteller unbekannt (nicht auf der Trust List oder keine Trust List installiert)</target></trans-unit>
+            <trans-unit id="status.invalid"><source>Signature invalid or manifest damaged</source><target>Signatur ungültig oder Manifest beschädigt</target></trans-unit>
+            <trans-unit id="status.unreadable"><source>Not checked (format unsupported or read error)</source><target>Nicht geprüft (Format nicht unterstützt oder Lesefehler)</target></trans-unit>
+            <trans-unit id="ai"><source>Marked as AI-generated (claim of the manifest)</source><target>Als KI-generiert gekennzeichnet (Angabe des Manifests)</target></trans-unit>
+            <trans-unit id="agents"><source>Software agents named in the manifest</source><target>Im Manifest genannte Software</target></trans-unit>
+            <trans-unit id="ai_manual"><source>AI-generated (set by editors)</source><target>KI-generiert (Angabe der Redaktion)</target></trans-unit>
+            <trans-unit id="ai_manual.description"><source>Set this when the file is AI-generated but carries no Content Credentials saying so. The frontend shows the AI notice for either source.</source><target>Setzen, wenn die Datei KI-generiert ist, aber keine Content Credentials das angeben. Das Frontend zeigt den KI-Hinweis für beide Quellen.</target></trans-unit>
+            <trans-unit id="checked"><source>Last checked</source><target>Zuletzt geprüft</target></trans-unit>
+            <trans-unit id="issues"><source>Problems found (C2PA status codes)</source><target>Gefundene Probleme (C2PA-Statuscodes)</target></trans-unit>
+            <trans-unit id="issues.title"><source>The Content Credentials of this file are invalid</source><target>Die Content Credentials dieser Datei sind ungültig</target></trans-unit>
+            <trans-unit id="issues.hint"><source>Do not rely on the information in the manifest. Use the original file if you have it.</source><target>Verlassen Sie sich nicht auf die Angaben im Manifest. Verwenden Sie, wenn möglich, die Originaldatei.</target></trans-unit>
+            <trans-unit id="issue.changed"><source>The file was changed after it was signed.</source><target>Die Datei wurde nach dem Signieren verändert.</target></trans-unit>
+            <trans-unit id="issue.signature"><source>The signature does not match the manifest, or the manifest was altered.</source><target>Die Signatur passt nicht zum Manifest, oder das Manifest wurde verändert.</target></trans-unit>
+            <trans-unit id="issue.certificate"><source>The signing certificate is not valid: expired, revoked or unsuitable, and no trusted timestamp vouches for the time of signing.</source><target>Das Signaturzertifikat ist nicht gültig (abgelaufen, widerrufen oder ungeeignet), und kein vertrauenswürdiger Zeitstempel belegt den Zeitpunkt der Signatur.</target></trans-unit>
+            <trans-unit id="issue.damaged"><source>The manifest is damaged or incomplete.</source><target>Das Manifest ist beschädigt oder unvollständig.</target></trans-unit>
+            <trans-unit id="upload.invalid.title"><source>Content Credentials invalid</source><target>Content Credentials ungültig</target></trans-unit>
+        </body>
+    </file>
+</xliff>

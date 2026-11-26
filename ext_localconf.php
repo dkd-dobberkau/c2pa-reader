@@ -12,3 +12,10 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['proc
 
 // <c2pa:badge> in all Fluid templates without a namespace declaration.
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['fluid']['namespaces']['c2pa'][] = 'Dkd\\C2paReader\\ViewHelpers';
+
+// Explains an "invalid" status in the metadata form.
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1795800001] = [
+    'nodeName' => 'c2paCredentialIssues',
+    'priority' => 40,
+    'class' => \Dkd\C2paReader\Form\CredentialIssuesInformation::class,
+];

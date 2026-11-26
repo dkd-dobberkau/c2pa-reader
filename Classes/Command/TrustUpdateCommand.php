@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Dkd\C2paReader\Command;
 
+use Dkd\C2paReader\Service\CredentialScanner;
 use Dkd\C2paReader\Trust\TrustListUpdater;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -13,13 +14,18 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Downloads the C2PA trust lists: vendor/bin/typo3 c2pa:trust:update [--with-digicert]
+ * Downloads the C2PA trust lists: vendor/bin/typo3 c2pa:trust:update [--with-digicert] [--rescan]
+ *
+ * Schedulable: in the Scheduler, add the task "Execute console commands", choose this
+ * command and enable --rescan, so the lists stay current and files are checked again.
  */
 #[AsCommand(name: 'c2pa:trust:update', description: 'Downloads the trust lists of the C2PA conformance programme.')]
 final class TrustUpdateCommand extends Command
 {
-    public function __construct(private readonly TrustListUpdater $updater)
-    {
+    public function __construct(
+        private readonly TrustListUpdater $updater,
+        private readonly CredentialScanner $scanner,
+    ) {
         parent::__construct();
     }
 
@@ -31,10 +37,17 @@ final class TrustUpdateCommand extends Command
             InputOption::VALUE_NONE,
             'Also trust timestamps from DigiCert Trusted Root G4 (used by Adobe and Microsoft; not on the C2PA TSA list).',
         );
+        $this->addOption(
+            'rescan',
+            null,
+            InputOption::VALUE_NONE,
+            'After a successful update, check all supported files again (like c2pa:scan --force).',
+        );
         $this->setHelp(
             'Downloads the signer list and the timestamp authority (TSA) list that the C2PA conformance programme publishes '
             . '(github.com/c2pa-org/conformance-public, CC BY 4.0) into the trust directory. Files whose signer chains to '
-            . 'one of these anchors get the status "trusted". Run it again to refresh the lists, then c2pa:scan --force.'
+            . 'one of these anchors get the status "trusted". Run it regularly, for example as a Scheduler task, '
+            . 'with --rescan to check the existing files against the new lists.'
         );
     }
 
@@ -53,7 +66,16 @@ final class TrustUpdateCommand extends Command
             $result['files'],
         ));
         $io->success('Trust lists saved in ' . $result['directory'] . '.');
-        $io->note('Run "vendor/bin/typo3 c2pa:scan --force" to check existing files against the new lists.');
+
+        if (!$input->getOption('rescan')) {
+            $io->note('Run "vendor/bin/typo3 c2pa:scan --force" to check existing files against the new lists.');
+            return Command::SUCCESS;
+        }
+        $counts = $this->scanner->scan(
+            true,
+            static fn(int $uid, \Throwable $e) => $io->warning(sprintf('File %d skipped: %s', $uid, $e->getMessage())),
+        );
+        ScanCommand::printCounts($io, $counts);
 
         return Command::SUCCESS;
     }
