@@ -6,6 +6,8 @@ All notable changes to this extension. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-26
+
 ### Added
 - Invalid Content Credentials are explained: the new field `tx_c2pareader_issues` stores the
   C2PA status codes, the metadata form shows the reason in words, and a backend upload or
@@ -68,7 +70,8 @@ First release (proof of concept).
   run in GitHub Actions with PHP 8.3 and 8.4.
 - Security review before the release; see SECURITY.md.
 
-[Unreleased]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.2.0...HEAD
+[Unreleased]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.1.1...0.2.0
 [0.1.1]: https://github.com/dkd-dobberkau/c2pa-reader/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/dkd-dobberkau/c2pa-reader/releases/tag/0.1.0
